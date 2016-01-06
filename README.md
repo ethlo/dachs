@@ -1,4 +1,4 @@
-# Dachs - Data Change Sneak
+# Dachs - Data Change Snitch
 
 ### Rationale
 
