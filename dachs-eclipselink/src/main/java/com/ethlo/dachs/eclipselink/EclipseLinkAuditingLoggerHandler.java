@@ -1,18 +1,11 @@
 package com.ethlo.dachs.eclipselink;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
 import javax.persistence.PersistenceUnitUtil;
 
 import org.eclipse.persistence.descriptors.DescriptorEvent;
@@ -30,6 +23,7 @@ import com.ethlo.dachs.EntityEventListener;
 import com.ethlo.dachs.EntityListenerAdapter;
 import com.ethlo.dachs.InternalAuditEntityListener;
 import com.ethlo.dachs.PropertyChange;
+import com.ethlo.dachs.jpa.EntityUtil;
 
 /**
  * 
@@ -42,10 +36,13 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 	
 	private PersistenceUnitUtil persistenceUnitUtil;
 
+	private EntityUtil entityUtil;
+
 	public EclipseLinkAuditingLoggerHandler(InternalAuditEntityListener auditLogger, PersistenceUnitUtil persistenceUnitUtil)
 	{
 	    this.auditLogger = auditLogger;
 	    this.persistenceUnitUtil = persistenceUnitUtil;
+	    this.entityUtil = new EntityUtil(persistenceUnitUtil);
 	    
 	    TransactionSynchronizationManager.registerSynchronization(this);
 	}
@@ -53,7 +50,7 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 	@Override
 	public void postPersistEvent(DescriptorEvent event)
 	{
-		this.auditLogger.create(getObjectId(event.getObject()), event.getObject(), extractEntityProperties(event));
+		this.auditLogger.create(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event));
 	}
 
 	@Override
@@ -94,157 +91,16 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 			
 			if (Iterable.class.isAssignableFrom(attrType))
 			{
-				extractListDiff(propChanges, Iterable.class, attrName, newValue, oldValue);
+				entityUtil.extractListDiff(propChanges, Iterable.class, attrName, newValue, oldValue);
 			}
 			else 
 			{
-				extractSingle(attrName, attrType, oldValue, newValue, propChanges);
+				entityUtil.extractSingle(attrName, attrType, oldValue, newValue, propChanges);
 			}
 		}
 		return propChanges;
 	}
 	
-	private List<PropertyChange<?>> extractEntityProperties(DescriptorEvent event)
-	{
-		final List<PropertyChange<?>> propChanges = new ArrayList<PropertyChange<?>>();
-		final Map<String, Field> fieldMap = new HashMap<String, Field>();
-		final Object target = event.getObject();
-		ReflectionUtils.doWithFields(target.getClass(), new ReflectionUtils.FieldCallback()
-		{
-			public void doWith(Field field)
-			{
-				final String fieldName = field.getName();
-				if (! fieldMap.containsKey(fieldName))
-				{
-					field.setAccessible(true);
-					fieldMap.put(fieldName, field);
-					if (! Modifier.isTransient(field.getModifiers()))
-					{
-						extractChangeData(propChanges, target, field);
-					}
-				}
-			}
-		});
-		return propChanges;
-	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private <T> void extractChangeData(final List<PropertyChange<?>> propChanges, final Object target, Field field)
-	{
-		if (field.getAnnotation(AuditIgnore.class) != null)
-		{
-			// Skip ignored fields
-			return;
-		}
-		
-		final String fieldName = field.getName();
-		final Object value = ReflectionUtils.getField(field, target);
-		
-		if (field.getType().isAssignableFrom(Iterable.class))
-		{
-			extractListDiff(propChanges, field.getType(), fieldName, value, null);
-		}
-		else if (field.getAnnotation(Column.class) != null)
-		{
-			if (value != null)
-			{
-				propChanges.add(new PropertyChange<Object>(fieldName, null, null, value));
-			}
-		}
-		else if (field.getAnnotation(JoinColumn.class) != null)
-		{
-			if (value != null)
-			{
-				final Object id = persistenceUnitUtil.getIdentifier(value);
-				propChanges.add(new PropertyChange(fieldName, id.getClass(), null, id));
-			}
-		}
-	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private <T> void extractListDiff(final List<PropertyChange<?>> propChanges, Class<?> type, final String attrName, final Object newValue, final Object oldValue)
-	{
-		final Iterable<T> newList = (Iterable<T>) newValue;
-		final Iterable<T> oldList = (Iterable<T>) oldValue;		
-		final List<Serializable> oldVal = extractChangeList(oldList);
-		final List<Serializable> newVal = extractChangeList(newList);
-		propChanges.add(new PropertyChange(attrName, type, oldVal, newVal));
-	}
-
-	private List<Serializable> extractChangeList(Iterable<? extends Object> objects)
-	{
-		final List<Serializable> retVal = new ArrayList<Serializable>();
-		if (objects != null)
-		{
-			for (Object n : objects)
-			{
-				if (n.getClass().getAnnotation(Entity.class) != null)
-				{
-					retVal.add(extractEntityRef(n));
-				}
-				else
-				{
-					retVal.add(safeToString(n));
-				}
-			}
-		}
-		return retVal;
-	}
-
-	private void extractSingle(String attrName, Class<?> attrType, Object oldValue, Object newValue, List<PropertyChange<?>> propChanges)
-	{
-		PropertyChange<?> propChange = null;
-		if (isEntity(attrType))
-		{
-			propChange = extractEntityReference(attrName, oldValue, newValue);
-		}
-		else
-		{
-			propChange = extractSimpleValue(attrName, oldValue, newValue);
-		}
-		
-		if (propChange != null)
-		{
-			propChanges.add(propChange);
-		}
-	}
-
-	private boolean isEntity(Class<?> attrType)
-	{
-		return attrType.getAnnotation(Entity.class) != null;
-	}
-
-	private <T> PropertyChange<Serializable> extractEntityReference(String attrName, Object oldValue, Object newValue)
-	{
-		final Serializable oldRef = extractEntityRef(oldValue);
-		final Serializable newRef = extractEntityRef(newValue);
-		if (! Objects.equals(oldRef, newRef))
-		{
-			return new PropertyChange<Serializable>(attrName, Serializable.class, oldRef, newRef);
-		}
-		return null;
-	}
-
-	private Serializable extractEntityRef(Object value)
-	{
-		return (Serializable) (value != null ? persistenceUnitUtil.getIdentifier(value) : null);
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private PropertyChange<?> extractSimpleValue(String attrName, Object oldValue, Object newValue)
-	{
-		if (! Objects.equals(oldValue, newValue))
-		{
-			return new PropertyChange(attrName, null, oldValue, newValue);
-		}
-		return null;
-	}
-
-	private String safeToString(Object obj)
-	{
-		return obj != null ? obj.toString() : null;
-	}
-
 	private Serializable getObjectId(Object obj) 
 	{
 		if (obj == null || obj.getClass().getAnnotation(Entity.class) == null)

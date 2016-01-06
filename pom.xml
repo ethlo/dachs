@@ -15,6 +15,8 @@
 		<module>dachs-eclipselink</module>
 		<module>dachs-hibernate</module>
 		<module>dachs-common</module>
+		<module>dachs-common-test</module>
+		<module>dachs-common-jpa</module>
 	</modules>
 	<build>
 		<pluginManagement>
