@@ -1,4 +1,4 @@
-package hello;
+package com.ethlo.dachs.test;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,5 +28,9 @@ public class Customer {
                 id, firstName, lastName);
     }
 
+	public void setFirstName(String firstname)
+	{
+		this.firstName = firstname;
+	}
 }
 

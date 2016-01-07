@@ -1,13 +1,17 @@
 package com.ethlo.dachs.hibernate;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.persistence.EntityManagerFactory;
 
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
+import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
+import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -70,18 +74,49 @@ public class HibernateInjector
 				}
 			}
 
+			@SuppressWarnings({ "unchecked", "rawtypes" })
 			private Collection<PropertyChange<?>> getProperties(PostUpdateEvent event)
 			{
-				// TODO Auto-generated method stub
-				return null;
+				final List<PropertyChange<?>> allProperties = entityUtil.extractEntityProperties(event.getEntity());
+				final List<PropertyChange<?>> retVal = new ArrayList<>();
+				for (int idx : event.getDirtyProperties())
+				{
+					final PropertyChange<?> chg = allProperties.get(idx);
+					final PropertyChange<Object> changed = new PropertyChange(chg.getPropertyName(), chg.getEntityType(), event.getOldState()[idx], chg.getNewValue());
+					retVal.add(changed);
+				}
+				return retVal;
 			}
 
 			@Override
 			public void onPostUpdateCommitFailed(PostUpdateEvent event) {
-				// TODO Auto-generated method stub
-				
+				// Ignored
+			}
+		});     
+        
+        registry.getEventListenerGroup(EventType.POST_COMMIT_DELETE).appendListener(new PostCommitDeleteEventListener() {
+			
+			@Override
+			public boolean requiresPostCommitHanding(EntityPersister persister)
+			{
+				return true;
+			}
+			
+			@Override
+			public void onPostDelete(PostDeleteEvent event)
+			{
+				for (AuditEntityListener l : auditEntityListener)
+				{
+					l.delete(event.getId(), event.getEntity());
+				}
+			}
+			
+			@Override
+			public void onPostDeleteCommitFailed(PostDeleteEvent event)
+			{
+				//Ignored
 			}
 		});
-    }
+	}
 }
 
