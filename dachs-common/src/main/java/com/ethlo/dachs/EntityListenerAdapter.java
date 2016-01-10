@@ -1,20 +1,23 @@
 package com.ethlo.dachs;
 
-public class EntityListenerAdapter implements EntityListener
-{
-	public void postRemove(Object obj)
-	{
+public class EntityListenerAdapter implements EntityListener {
+
+	@Override
+	public void created(EntityData entityData) {
+		// TODO Auto-generated method stub
+
 	}
 
-	public void postUpdate(Object obj)
-	{
+	@Override
+	public void updated(EntityData entityData) {
+		// TODO Auto-generated method stub
+
 	}
 
-	public void postPersist(Object obj)
-	{
+	@Override
+	public void deleted(EntityData entityData) {
+		// TODO Auto-generated method stub
+
 	}
 
-	public void prePersist(Object obj)
-	{
-	}
 }

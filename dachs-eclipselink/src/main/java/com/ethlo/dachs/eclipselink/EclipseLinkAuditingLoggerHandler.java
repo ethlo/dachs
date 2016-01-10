@@ -18,11 +18,12 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.ReflectionUtils;
 
-import com.ethlo.dachs.AuditIgnore;
-import com.ethlo.dachs.EntityEventListener;
-import com.ethlo.dachs.EntityListenerAdapter;
-import com.ethlo.dachs.InternalAuditEntityListener;
+import com.ethlo.dachs.BoundaryEntityListenerBuffer;
+import com.ethlo.dachs.EntityData;
+import com.ethlo.dachs.EntityListenerIgnore;
 import com.ethlo.dachs.PropertyChange;
+import com.ethlo.dachs.impl.EntityEventListener;
+import com.ethlo.dachs.impl.EntityListenerAdapter;
 import com.ethlo.dachs.jpa.EntityUtil;
 
 /**
@@ -32,15 +33,15 @@ import com.ethlo.dachs.jpa.EntityUtil;
  */
 public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter implements EntityEventListener<DescriptorEvent>, TransactionSynchronization
 {
-	private InternalAuditEntityListener auditLogger;
+	private BoundaryEntityListenerBuffer boundaryEntityListenerBuffer;
 	
 	private PersistenceUnitUtil persistenceUnitUtil;
 
 	private EntityUtil entityUtil;
 
-	public EclipseLinkAuditingLoggerHandler(InternalAuditEntityListener auditLogger, PersistenceUnitUtil persistenceUnitUtil)
+	public EclipseLinkAuditingLoggerHandler(BoundaryEntityListenerBuffer boundaryEntityListenerBuffer, PersistenceUnitUtil persistenceUnitUtil)
 	{
-	    this.auditLogger = auditLogger;
+	    this.boundaryEntityListenerBuffer = boundaryEntityListenerBuffer;
 	    this.persistenceUnitUtil = persistenceUnitUtil;
 	    this.entityUtil = new EntityUtil(persistenceUnitUtil);
 	    
@@ -50,13 +51,13 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 	@Override
 	public void postPersistEvent(DescriptorEvent event)
 	{
-		this.auditLogger.create(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event));
+		this.boundaryEntityListenerBuffer.created(new EntityData(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event)));
 	}
 
 	@Override
 	public void postRemoveEvent(DescriptorEvent event) 
 	{
-		this.auditLogger.delete(getObjectId(event.getObject()), event.getObject());
+		this.boundaryEntityListenerBuffer.deleted(new EntityData(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event)));
 	}
 	
 	@Override
@@ -65,7 +66,7 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 		final Serializable key = getObjectId(event.getObject());
 		final Object entity = event.getObject();
 		final Collection<PropertyChange<?>> properties = handleModification(event);
-		this.auditLogger.update(key, entity, properties);
+		this.boundaryEntityListenerBuffer.updated(new EntityData(key, entity, properties));
 	}
 	
 	private List<PropertyChange<?>> handleModification(DescriptorEvent event)
@@ -83,7 +84,7 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 			final Object oldValue = change.getOldValue();
 			final Class<?> attrType = accessor.getPropertyType(attrName);
 			
-			if (ReflectionUtils.findField(objectClass, change.getAttribute()).getAnnotation(AuditIgnore.class) != null)
+			if (ReflectionUtils.findField(objectClass, change.getAttribute()).getAnnotation(EntityListenerIgnore.class) != null)
 			{
 				// Ignored
 				continue;
@@ -122,7 +123,7 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
     @Override
 	public void resume()
 	{
-		this.auditLogger.start();
+		this.boundaryEntityListenerBuffer.start();
 	}
 
 	@Override
@@ -131,11 +132,11 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 		switch (status)
 		{
 			case TransactionSynchronization.STATUS_ROLLED_BACK:
-				this.auditLogger.discard();
+				this.boundaryEntityListenerBuffer.discard();
 				break;
 				
 			case TransactionSynchronization.STATUS_COMMITTED:
-				this.auditLogger.flush();
+				this.boundaryEntityListenerBuffer.flush();
 				break;
 		}
 	}

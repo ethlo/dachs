@@ -1,4 +1,4 @@
-package com.ethlo.dachs;
+package com.ethlo.dachs.impl;
 
 public interface EntityEventListener<E>
 {

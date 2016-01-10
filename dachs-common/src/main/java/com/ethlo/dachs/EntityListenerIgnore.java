@@ -8,12 +8,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Used to mark both entities and individual fields that should not be audited
+ * Used to mark both entities and individual fields that should not be included in the listener
  */
 @Target({ElementType.FIELD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface AuditIgnore
+public @interface EntityListenerIgnore
 {
 }

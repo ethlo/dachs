@@ -15,7 +15,7 @@ import javax.persistence.PersistenceUnitUtil;
 
 import org.springframework.util.ReflectionUtils;
 
-import com.ethlo.dachs.AuditIgnore;
+import com.ethlo.dachs.EntityListenerIgnore;
 import com.ethlo.dachs.PropertyChange;
 
 public class EntityUtil
@@ -83,7 +83,7 @@ public class EntityUtil
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private <T> void extractChangeData(final List<PropertyChange<?>> propChanges, final Object target, Field field)
 	{
-		if (field.getAnnotation(AuditIgnore.class) != null)
+		if (field.getAnnotation(EntityListenerIgnore.class) != null)
 		{
 			// Skip ignored fields
 			return;
