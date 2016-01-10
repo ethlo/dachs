@@ -22,8 +22,6 @@ import com.ethlo.dachs.BoundaryEntityListenerBuffer;
 import com.ethlo.dachs.EntityData;
 import com.ethlo.dachs.EntityListenerIgnore;
 import com.ethlo.dachs.PropertyChange;
-import com.ethlo.dachs.impl.EntityEventListener;
-import com.ethlo.dachs.impl.EntityListenerAdapter;
 import com.ethlo.dachs.jpa.EntityUtil;
 
 /**

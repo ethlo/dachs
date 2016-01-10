@@ -1,4 +1,4 @@
-package com.ethlo.dachs.impl;
+package com.ethlo.dachs.eclipselink;
 
 public interface EntityListener
 {
