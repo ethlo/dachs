@@ -11,7 +11,7 @@ The goal of this project is to have a unified API for multiple datasources to li
 ### API
 The goal is to have a simple, but powerful API to get notifications of all changes, that is `created`, `updated` and `deleted`.
 
-{% highlight java %}
+{%highlight java %}
 public interface EntityListener
 {
 
@@ -26,7 +26,7 @@ public interface EntityListener
 
 Where `EntityData` is as simple as:
 
-{% highlight java %}
+{%highlight java %}
 
 public interface EntityData
 {
