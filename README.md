@@ -14,6 +14,7 @@ The goal is to have a simple, but powerful API to get notifications of all chang
 {% highlight java %}
 public interface EntityListener
 {
+
 	void created(EntityData entityData);
 
 	void updated(EntityData entityData);
@@ -29,6 +30,7 @@ Where `EntityData` is as simple as:
 
 public interface EntityData
 {
+
 	/**
 	 * Returns the id of the entity
 	 * @return the id of the entity
