@@ -11,23 +11,18 @@ The goal of this project is to have a unified API for multiple datasources to li
 ### API
 The goal is to have a simple, but powerful API to get notifications of all changes, that is `created`, `updated` and `deleted`.
 
-{%highlight java %}
+```java
 public interface EntityListener
 {
-
 	void created(EntityData entityData);
-
 	void updated(EntityData entityData);
-	
 	void deleted(EntityData entityData);
 }
-
-{% endhighlight %}
+```
 
 Where `EntityData` is as simple as:
 
-{%highlight java %}
-
+```java
 public interface EntityData
 {
 
@@ -55,8 +50,7 @@ public interface EntityData
 	 * @return The {@link PropertyChange} for the given propertyName
 	 */
 	Optional<PropertyChange<?>> getPropertyChange(String propertyName);
-
-{% endhighlight %}
+```
 
 ### Transaction boundaries (if applicable)
 Often we do not care for events before they are actually committed. For example, we do not want to store audit data if the transaction was rolled back. Dachs can buffer events until commit if in a transactional context.
