@@ -14,12 +14,11 @@ import org.eclipse.persistence.sessions.changesets.ChangeRecord;
 import org.eclipse.persistence.sessions.changesets.ObjectChangeSet;
 import org.springframework.beans.ConfigurablePropertyAccessor;
 import org.springframework.beans.PropertyAccessorFactory;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.ReflectionUtils;
 
-import com.ethlo.dachs.BoundaryEntityListenerBuffer;
 import com.ethlo.dachs.EntityData;
+import com.ethlo.dachs.EntityDataImpl;
+import com.ethlo.dachs.EntityListener;
 import com.ethlo.dachs.EntityListenerIgnore;
 import com.ethlo.dachs.PropertyChange;
 import com.ethlo.dachs.jpa.EntityUtil;
@@ -29,33 +28,37 @@ import com.ethlo.dachs.jpa.EntityUtil;
  * @author mha
  *
  */
-public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter implements EntityEventListener<DescriptorEvent>, TransactionSynchronization
+public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter implements EntityEventListener<DescriptorEvent>
 {
-	private BoundaryEntityListenerBuffer boundaryEntityListenerBuffer;
-	
 	private PersistenceUnitUtil persistenceUnitUtil;
-
 	private EntityUtil entityUtil;
+	private EntityListener[] entityListeners;
 
-	public EclipseLinkAuditingLoggerHandler(BoundaryEntityListenerBuffer boundaryEntityListenerBuffer, PersistenceUnitUtil persistenceUnitUtil)
+	public EclipseLinkAuditingLoggerHandler(PersistenceUnitUtil persistenceUnitUtil, EntityListener... entityListeners)
 	{
-	    this.boundaryEntityListenerBuffer = boundaryEntityListenerBuffer;
+		this.entityListeners = entityListeners;
 	    this.persistenceUnitUtil = persistenceUnitUtil;
 	    this.entityUtil = new EntityUtil(persistenceUnitUtil);
-	    
-	    TransactionSynchronizationManager.registerSynchronization(this);
 	}
 	
 	@Override
 	public void postPersistEvent(DescriptorEvent event)
 	{
-		this.boundaryEntityListenerBuffer.created(new EntityData(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event)));
+		final EntityData e = new EntityDataImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event));
+		for (EntityListener listener : entityListeners)
+		{
+			listener.created(e);
+		}
 	}
 
 	@Override
 	public void postRemoveEvent(DescriptorEvent event) 
 	{
-		this.boundaryEntityListenerBuffer.deleted(new EntityData(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event)));
+		final EntityData e = new EntityDataImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event));
+		for (EntityListener listener : entityListeners)
+		{
+			listener.deleted(e);
+		}
 	}
 	
 	@Override
@@ -64,7 +67,12 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 		final Serializable key = getObjectId(event.getObject());
 		final Object entity = event.getObject();
 		final Collection<PropertyChange<?>> properties = handleModification(event);
-		this.boundaryEntityListenerBuffer.updated(new EntityData(key, entity, properties));
+		final EntityData e = new EntityDataImpl(key, entity, properties);
+		
+		for (EntityListener listener : entityListeners)
+		{
+			listener.updated(e);
+		}
 	}
 	
 	private List<PropertyChange<?>> handleModification(DescriptorEvent event)
@@ -109,7 +117,7 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 		final Object entityId = persistenceUnitUtil.getIdentifier(obj);
 		if (entityId != null)
 		{
-			if (entityId.getClass().isAssignableFrom(Serializable.class))
+			if (Serializable.class.isAssignableFrom(entityId.getClass()))
 			{
 				return (Serializable) entityId;
 			}
@@ -117,40 +125,4 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 		}
 		return null;
 	}
-	     
-    @Override
-	public void resume()
-	{
-		this.boundaryEntityListenerBuffer.start();
-	}
-
-	@Override
-	public void afterCompletion(int status)
-	{
-		switch (status)
-		{
-			case TransactionSynchronization.STATUS_ROLLED_BACK:
-				this.boundaryEntityListenerBuffer.discard();
-				break;
-				
-			case TransactionSynchronization.STATUS_COMMITTED:
-				this.boundaryEntityListenerBuffer.flush();
-				break;
-		}
-	}
-
-	@Override
-	public void suspend(){}
-
-	@Override
-	public void flush() {}
-
-	@Override
-	public void beforeCommit(boolean readOnly) {}
-
-	@Override
-	public void beforeCompletion() {}
-
-	@Override
-	public void afterCommit() {}
 }

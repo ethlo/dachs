@@ -10,7 +10,7 @@ import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
 
 import com.ethlo.dachs.EntityListener;
-import com.ethlo.dachs.EntityData;
+import com.ethlo.dachs.EntityDataImpl;
 import com.ethlo.dachs.PropertyChange;
 
 public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
@@ -29,7 +29,7 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
 		final Collection<PropertyChange<?>> props = getProperties(entity, new Object[state.length], state, propertyNames, types);
 		for (EntityListener listener : listeners)
 		{
-			listener.deleted(new EntityData(id, entity, props));
+			listener.deleted(new EntityDataImpl(id, entity, props));
 		}
 	}
 
@@ -39,7 +39,7 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
 		final Collection<PropertyChange<?>> props = getProperties(entity, state, new Object[state.length], propertyNames, types);
 		for (EntityListener listener : listeners)
 		{
-			listener.created(new EntityData(id, entity, props));
+			listener.created(new EntityDataImpl(id, entity, props));
 		}
 		return false;
 	}
@@ -50,7 +50,7 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
 		final Collection<PropertyChange<?>> props = getProperties(entity, currentState, previousState, propertyNames, types);
 		for (EntityListener listener : listeners)
 		{
-			listener.updated(new EntityData(id, entity, props));
+			listener.updated(new EntityDataImpl(id, entity, props));
 		}
 		return false;
 	}

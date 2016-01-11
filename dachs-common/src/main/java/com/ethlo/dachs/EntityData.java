@@ -2,75 +2,32 @@ package com.ethlo.dachs;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
-public class EntityData
+public interface EntityData
 {
-	private final Serializable id;
-	private final Object entity;
-	private final Map<String, PropertyChange<?>> properties;
-	
-	public EntityData(Serializable id, Object entity, Collection<PropertyChange<?>> properties)
-	{
-		this.id = id;
-		this.entity = entity;
-		this.properties = new LinkedHashMap<>();
-		for (PropertyChange<?> propertyChange : properties)
-		{
-			this.properties.put(propertyChange.getPropertyName(), propertyChange);
-		}
-	}
+	/**
+	 * Returns the id of the entity
+	 * @return the id of the entity
+	 */
+	Serializable getId();
 
-	public Serializable getId()
-	{
-		return id;
-	}
+	/**
+	 * Returns the entity
+	 * @return The entity
+	 */
+	Object getEntity();
 
-	public Object getEntity()
-	{
-		return entity;
-	}
+	/**
+	 * Get all propertyChanges
+	 * @return A list of all property changes for this entity
+	 */
+	Collection<PropertyChange<?>> getPropertyChanges();
 
-	public Collection<PropertyChange<?>> getPropertyChanges()
-	{
-		return properties.values();
-	}
-	
-	public Optional<PropertyChange<?>> getPropertyChange(String propertyName)
-	{
-		return Optional.ofNullable(this.properties.get(propertyName));
-	}
-
-	@Override
-	public int hashCode()
-	{
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((entity == null) ? 0 : entity.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((properties == null) ? 0 : properties.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj instanceof EntityData)
-		{
-			final EntityData b = (EntityData) obj;
-			return Objects.equals(id, b.id) 
-				&& Objects.equals(entity, b.entity)
-				&& Objects.equals(properties, b.properties);
-		}
-		return false;
-	}
-
-	@Override
-	public String toString()
-	{
-		return "EntityData [id=" + id + ", entity=" + entity + ", properties=" + properties + "]";
-	}
+	/**
+	 * Get a {@link PropertyChange} for the given propertyName of this entity
+	 * @param propertyName The name of the entity property
+	 * @return The {@link PropertyChange} for the given propertyName
+	 */
+	Optional<PropertyChange<?>> getPropertyChange(String propertyName);
 }
