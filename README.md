@@ -121,3 +121,9 @@ EntityData
 
 ### Transaction boundaries (if applicable)
 Often we do not care for events before they are actually committed. For example, we do not want to store audit data if the transaction was rolled back. Dachs can buffer events until commit if in a transactional context.
+
+### Limitations
+Dachs relies on the persistence framework in use to notify about operations and there might be limitations. 
+In general bulk delete will not trigger delete events (aka `DELETE FROM Entity`). 
+
+### Release history
