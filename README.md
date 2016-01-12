@@ -6,10 +6,14 @@ In almost all back-end systems there is the need to notify or update additional 
 
 For example Spring has already support for events, and from [Spring 4.2](https://spring.io/blog/2015/02/11/better-application-events-in-spring-framework-4-2#transaction-bound-events) it also has support for send-at-end-of-transaction-events. Further Spring JPA supports [auditing](http://docs.spring.io/spring-data/jpa/docs/1.5.0.RELEASE/reference/html/jpa.repositories.html#jpa.auditing), however it does not support fetching the actual data, just who changed it and when. There is no recollection of what was changed.
 
-The goal of this project is to have a unified API for multiple datasources to listen for core data changes, that can subsequently be used for whatever purpose you see fit.
+*The goal of this project is to have a unified API for multiple datasources to listen for core data changes.*
+
+### Supported
+* Eclipselink - [Setup guide](eclipselink.md)
+* Hibernate - [Setup guide](hibernate.md)
 
 ### API
-The goal is to have a simple, but powerful API to get notifications of all changes, that is `created`, `updated` and `deleted`.
+The goal is to have a simple, but powerful API to get notifications of all changes to entities, that is `created`, `updated` and `deleted`.
 
 ```java
 public interface EntityListener
@@ -20,7 +24,7 @@ public interface EntityListener
 }
 ```
 
-Where `EntityData` is as simple as:
+Using this simple listener, we get an `EntityData` object for each operation on the entity.
 
 ```java
 public interface EntityData
@@ -50,6 +54,69 @@ public interface EntityData
 	 * @return The {@link PropertyChange} for the given propertyName
 	 */
 	Optional<PropertyChange<?>> getPropertyChange(String propertyName);
+```
+
+Each `EntityData` object holds a collection of `PropertyChanges` that is the individual properties that has changed.
+
+```java
+public class PropertyChange<T>
+{
+	public String getPropertyName()
+	{
+		return propertyName;
+	}
+
+	public Class<T> getEntityType()
+	{
+		return entityType;
+	}
+
+	public T getOldValue()
+	{
+		return oldValue;
+	}
+
+	public T getNewValue()
+	{
+		return newValue;
+	}
+}
+```
+
+####Example output
+
+Given a simple Person object:
+
+```java
+public class Person()
+{
+	private String name;
+	private Integer age;
+}
+```
+
+#####Created
+```
+EntityData
+	propertyChanges:
+		* name - null => "John Doe"
+		* age - null => 34
+```
+
+#####Updated
+```
+EntityData
+	propertyChanges:
+		* name - "John Doe" => "John Smith"
+		* age - 34 => 47
+```
+
+#####Deleted
+```
+EntityData
+	propertyChanges:
+		* name - "John Smith" => null
+		* age - 47 => null
 ```
 
 ### Transaction boundaries (if applicable)
