@@ -8,9 +8,12 @@ For example Spring has already support for events, and from [Spring 4.2](https:/
 
 *The goal of this project is to have a unified API for multiple datasources to listen for core data changes.*
 
-### Supported
-* Eclipselink - [Setup guide](dachs-eclipselink/README.md)
-* Hibernate - [Setup guide](dachs-hibernate/README.md)
+### Status
+[![Build Status](https://travis-ci.org/ethlo/dachs.png?branch=master)](https://travis-ci.org/ethlo/dachs)
+
+### Supported persistence frameworks
+* Eclipselink - [Guide](dachs-eclipselink/README.md)
+* Hibernate - [Guide](dachs-hibernate/README.md)
 
 ### API
 The goal is to have a simple, but powerful API to get notifications of all changes to entities, that is `created`, `updated` and `deleted`.
