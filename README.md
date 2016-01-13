@@ -131,5 +131,10 @@ Often we do not care for events before they are actually committed. For example,
 Dachs relies on the persistence framework in use to notify about operations and there might be limitations. 
 In general bulk delete will not trigger delete events (aka `DELETE FROM Entity`). 
 
+### Performance
+Simple tests indicate that you can expect about 1-5% degradation in performance with Dachs enabled. YMMV.
+
+NOTE: Keep in mind that this test was performed on an in-memory database, performing 20 000 calls in about 2.5 seconds. Normally the real overhead would be negligible as the performance hit of your database would far outweigh this. 
+
 ### Release history
 TBA

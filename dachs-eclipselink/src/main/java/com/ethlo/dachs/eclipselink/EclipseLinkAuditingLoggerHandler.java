@@ -44,7 +44,7 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 	@Override
 	public void postPersistEvent(DescriptorEvent event)
 	{
-		final EntityData e = new EntityDataImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event));
+		final EntityData e = new EntityDataImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject()));
 		for (EntityListener listener : entityListeners)
 		{
 			listener.created(e);

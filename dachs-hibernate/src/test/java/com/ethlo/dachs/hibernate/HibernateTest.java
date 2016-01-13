@@ -1,6 +1,8 @@
 package com.ethlo.dachs.hibernate;
 
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,12 @@ public class HibernateTest
 	
 	@Autowired
 	private CollectingEntityListener listener;
+	
+	@Before
+	public void reset()
+	{
+		listener.reset();
+	}
 	
 	@Test
 	public void smokeTest()
@@ -43,5 +51,27 @@ public class HibernateTest
 		Assert.assertEquals(1, listener.getUpdated().size());
 
 		Assert.assertEquals(1, listener.getDeleted().size());
+	}
+	
+	@Test
+	public void performanceTest()
+	{
+		for (int i = 0; i < 20_000; i++)
+		{
+			repository.save(new Customer("Foo", "Bar"));
+		}
+		
+		Assert.assertEquals(20_000, listener.getCreated().size());
+	}
+
+	@Test
+	public void performanceTestWithoutListener()
+	{
+		for (int i = 0; i < 20_000; i++)
+		{
+			repository.save(new Customer("Foo", "Bar"));
+		}
+		
+		Assert.assertEquals(0, listener.getCreated().size());
 	}
 }
