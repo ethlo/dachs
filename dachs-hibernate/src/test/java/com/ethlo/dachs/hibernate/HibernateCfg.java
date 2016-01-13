@@ -46,7 +46,7 @@ public class HibernateCfg extends JpaBaseConfiguration
 		
 		// Connecting the listener to Dachs
 		final HibernatePropertyChangeInterceptor interceptor = new HibernatePropertyChangeInterceptor(new EntityListener[]{listener});
-		//retVal.put("hibernate.ejb.interceptor", interceptor);
+		retVal.put("hibernate.ejb.interceptor", interceptor);
 		
 		retVal.put("hibernate.hbm2ddl.auto", "create");
 		return retVal;

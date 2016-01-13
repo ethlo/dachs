@@ -37,11 +37,11 @@ public class HibernateTest
 		repository.save(new Customer("Chloe", "O'Brian"));
 		repository.save(new Customer("Kim", "Bauer"));
 		repository.save(new Customer("David", "Palmer"));
-		final Customer customer5 = repository.save(new Customer("Michelle", "Dessler"));
+		Customer customer5 = repository.save(new Customer("Michelle", "Dessler"));
 		
 		// Update
 		customer5.setFirstName("Dana");
-		repository.save(customer5);
+		customer5 = repository.save(customer5);
 		
 		// Delete
 		repository.delete(customer5);
@@ -64,6 +64,7 @@ public class HibernateTest
 		Assert.assertEquals(20_000, listener.getCreated().size());
 	}
 
+	@Ignore
 	@Test
 	public void performanceTestWithoutListener()
 	{
