@@ -3,7 +3,7 @@ package com.ethlo.dachs;
 public class PropertyChange<T>
 {
 	private String propertyName;
-	private Class<T> entityType;
+	private Class<T> propertyType;
 	private T oldValue;
 	private T newValue;
 	
@@ -13,10 +13,18 @@ public class PropertyChange<T>
 		
 	}
 	
-	public PropertyChange(String propertyName, Class<T> entityType, T oldValue, T newValue)
+	public PropertyChange(String propertyName, Class<T> propertyType, T oldValue, T newValue)
 	{
+		if (propertyName == null)
+		{
+			throw new IllegalArgumentException("propertyName cannot be null");
+		}
 		this.propertyName = propertyName;
-		this.entityType = entityType;
+		if (propertyType == null)
+		{
+			throw new IllegalArgumentException("propertyType cannot be null");
+		}
+		this.propertyType = propertyType;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
 	}
@@ -28,7 +36,7 @@ public class PropertyChange<T>
 
 	public Class<T> getPropertyType()
 	{
-		return entityType;
+		return propertyType;
 	}
 
 	public T getOldValue()
@@ -60,6 +68,6 @@ public class PropertyChange<T>
     @Override
     public String toString()
     {
-        return "PropertyChange [propertyName=" + propertyName + ", entityType=" + entityType + ", oldValue=" + oldValue + ", newValue=" + newValue + "]";
+        return "PropertyChange [propertyName=" + propertyName + ", entityType=" + propertyType + ", oldValue=" + oldValue + ", newValue=" + newValue + "]";
     }
 }

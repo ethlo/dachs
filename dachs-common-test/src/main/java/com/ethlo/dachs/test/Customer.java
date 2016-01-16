@@ -55,5 +55,20 @@ public class Customer
 	{
 		this.firstName = firstname;
 	}
+
+	public String getFirstName()
+	{
+		return this.firstName;
+	}
+	
+	public String getLastName()
+	{
+		return this.lastName;
+	}
+
+	public void setLastName(String lastName)
+	{
+		this.lastName = lastName;
+	}
 }
 

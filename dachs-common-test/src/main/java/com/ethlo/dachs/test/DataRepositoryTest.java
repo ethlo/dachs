@@ -94,17 +94,61 @@ public class DataRepositoryTest
 		assertMatch(createChangesM1.get(2), "lastName", String.class, null, "Cocker");
 		assertMatch(createChangesM1.get(3), "tags", Set.class, null, new HashSet<>());
 	}
-
-	private EntityDataChange getById(List<EntityDataChange> created, long id)
+	
+	@Test
+	public void testUpdateNoChanges()
 	{
-		for (EntityDataChange e : created)
+		final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
+		
+		txTpl.execute(new TransactionCallbackWithoutResult()
+		{
+			@Override
+			protected void doInTransactionWithoutResult(TransactionStatus status)
+			{
+				// Just load an entity, do not perform any changes
+				repository.findOne(1L);
+			}
+		});
+	}		
+	
+	@Test
+	public void testUpdate()
+	{
+		final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
+		
+		txTpl.execute(new TransactionCallbackWithoutResult()
+		{
+			@Override
+			protected void doInTransactionWithoutResult(TransactionStatus status)
+			{
+				final Customer existing1 = repository.findOne(1L);
+				existing1.setFirstName(existing1.getFirstName() + "_updated");
+				existing1.setLastName(existing1.getLastName() + "_updated");
+			}
+		});
+		
+		final List<EntityDataChange> updated = listener.getPostDataChangeSet().getUpdated();
+		Assert.assertEquals(1, updated.size());
+		
+		final EntityDataChange updated1 = getById(updated, 1L);
+		assertThat(updated1.getId()).isEqualTo(1L);
+		assertThat(updated1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
+		final List<PropertyChange<?>> updateChanges1 = updated1.getPropertyChanges();
+		assertThat(updateChanges1.size()).isEqualTo(2);
+		assertMatch(updateChanges1.get(0), "firstName", String.class, "Jack", "Jack_updated");
+		assertMatch(updateChanges1.get(1), "lastName", String.class, "Bauer", "Bauer_updated");
+	}
+
+	private EntityDataChange getById(List<EntityDataChange> changes, long id)
+	{
+		for (EntityDataChange e : changes)
 		{
 			if (Objects.equals(e.getId(), id))
 			{
 				return e;
 			}
 		}
-		throw new IllegalArgumentException("Could not find change with entity id " + id);
+		throw new IllegalArgumentException("Could not find change for entity id " + id);
 	}
 
 	private void assertMatch(@SuppressWarnings("rawtypes") PropertyChange change, String propName, Class<?> propType, Object oldValue, Object newValue)
@@ -119,23 +163,12 @@ public class DataRepositoryTest
 	@Test
 	public void performanceTest()
 	{
-		for (int i = 0; i < 20_000; i++)
+		final int iterations = 20_000;
+		for (int i = 0; i < iterations; i++)
 		{
-			repository.save(new Customer("Foo", "Bar"));
+			repository.save(new Customer("Foo", "Bar " + i));
 		}
 		
-		Assert.assertEquals(20_000, listener.getPostDataChangeSet().getCreated().size());
-	}
-
-	@Ignore
-	@Test
-	public void performanceTestWithoutListener()
-	{
-		for (int i = 0; i < 20_000; i++)
-		{
-			repository.save(new Customer("Foo", "Bar"));
-		}
-		
-		Assert.assertEquals(0, listener.getPostDataChangeSet().getCreated().size());
+		Assert.assertEquals(iterations, listener.getPostDataChangeSet().getCreated().size());
 	}
 }

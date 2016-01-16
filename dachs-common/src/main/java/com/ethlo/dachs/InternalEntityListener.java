@@ -1,7 +1,7 @@
 package com.ethlo.dachs;
 
 /**
- * Listener used for bridging events from the persistence framework to Dachs
+ * Listener used for bridging events from the persistence framework implementation to Dachs
  */
 public interface InternalEntityListener
 {

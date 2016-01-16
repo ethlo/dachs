@@ -122,7 +122,7 @@ public class EntityUtil
 		}
 		else
 		{
-			propChange = extractSimpleValue(attrName, oldValue, newValue);
+			propChange = extractSimpleValue(attrName, attrType, oldValue, newValue);
 		}
 		
 		if (propChange != null)
@@ -153,11 +153,11 @@ public class EntityUtil
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private PropertyChange<?> extractSimpleValue(String attrName, Object oldValue, Object newValue)
+	private PropertyChange<?> extractSimpleValue(String attrName, Class<?> type, Object oldValue, Object newValue)
 	{
 		if (! Objects.equals(oldValue, newValue))
 		{
-			return new PropertyChange(attrName, null, oldValue, newValue);
+			return new PropertyChange(attrName, type, oldValue, newValue);
 		}
 		return null;
 	}

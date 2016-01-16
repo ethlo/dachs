@@ -1,9 +1,12 @@
 package com.ethlo.dachs.eclipselink;
 
+import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.persistence.Entity;
 import javax.persistence.PersistenceUnitUtil;
@@ -12,6 +15,7 @@ import org.eclipse.persistence.descriptors.DescriptorEvent;
 import org.eclipse.persistence.queries.WriteObjectQuery;
 import org.eclipse.persistence.sessions.changesets.ChangeRecord;
 import org.eclipse.persistence.sessions.changesets.ObjectChangeSet;
+import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.ConfigurablePropertyAccessor;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.util.ReflectionUtils;
@@ -69,10 +73,11 @@ public class EclipseLinkAuditingLoggerHandler implements EntityEventListener<Des
 	private List<PropertyChange<?>> handleModification(DescriptorEvent event)
 	{
 		final Class<?> objectClass = event.getSource().getClass();
-		final ObjectChangeSet changeset = ((WriteObjectQuery)event.getQuery()).getObjectChangeSet();
+		final WriteObjectQuery writeObjectQuery = (WriteObjectQuery)event.getQuery();
+		final ObjectChangeSet changeset = writeObjectQuery.getObjectChangeSet();
 		final ConfigurablePropertyAccessor accessor = PropertyAccessorFactory.forDirectFieldAccess(event.getObject());
 		
-		final List<ChangeRecord> changes = changeset.getChanges();
+		final List<ChangeRecord> changes = changeset != null ? changeset.getChanges() : extractManually(writeObjectQuery);
 		final List<PropertyChange<?>> propChanges = new ArrayList<PropertyChange<?>>();
 		for (ChangeRecord change : changes)
 		{
@@ -99,6 +104,52 @@ public class EclipseLinkAuditingLoggerHandler implements EntityEventListener<Des
 		return propChanges;
 	}
 	
+	private List<ChangeRecord> extractManually(WriteObjectQuery writeObjectQuery)
+	{
+		final Object oldObj = writeObjectQuery.getBackupClone();
+		final Object newObj = writeObjectQuery.getObject();
+		
+		final ConfigurablePropertyAccessor accessorOld = PropertyAccessorFactory.forDirectFieldAccess(oldObj);
+		final ConfigurablePropertyAccessor accessorNew = PropertyAccessorFactory.forDirectFieldAccess(newObj);
+		final BeanWrapper beanAccessor = PropertyAccessorFactory.forBeanPropertyAccess(newObj);
+		
+		final List<ChangeRecord> retVal = new LinkedList<>();
+		for (PropertyDescriptor desc : beanAccessor.getPropertyDescriptors())
+		{
+			final String propName = desc.getName();
+			if (accessorNew.isReadableProperty(propName))
+			{
+				final Object newPropValue = accessorNew.getPropertyValue(propName);
+				final Object oldPropValue = accessorOld.getPropertyValue(propName);
+				if (! Objects.equals(newPropValue, oldPropValue))
+				{
+					final ChangeRecord c = new ChangeRecord()
+					{
+						@Override
+						public ObjectChangeSet getOwner()
+						{
+							return null;
+						}
+						
+						@Override
+						public Object getOldValue()
+						{
+							return oldPropValue;
+						}
+						
+						@Override
+						public String getAttribute()
+						{
+							return propName;
+						}
+					};
+					retVal.add(c);
+				}
+			}
+		}
+		return retVal;
+	}
+
 	private Serializable getObjectId(Object obj) 
 	{
 		if (obj == null || obj.getClass().getAnnotation(Entity.class) == null)

@@ -1,7 +1,7 @@
 package com.ethlo.dachs;
 
 /**
- * Similar to the {@link EntityListener}, but grouping all changes, usually bound by a transaction.
+ * Similar to the {@link EntityChangeListener}, but grouping all changes that occurs within a unit of work, i.e a transaction.
  */
 public interface EntityChangeSetListener
 {

@@ -1,6 +1,9 @@
 package com.ethlo.dachs;
 
-public class EntityListenerAdapter implements EntityListener
+/**
+ * Empty implementation of {@link EntityChangeListener}
+ */
+public class EntityListenerAdapter implements EntityChangeListener
 {
 	@Override
 	public void created(EntityDataChange entityData)

@@ -1,6 +1,12 @@
 package com.ethlo.dachs;
 
-public interface EntityListener
+/**
+ * Basic interface for listening for entity changes.
+ * 
+ * @see EntityChangeSetListener
+ * @see EntityListenerAdapter
+ */
+public interface EntityChangeListener
 {
 	void preCreate(EntityDataChange entityData);
 
