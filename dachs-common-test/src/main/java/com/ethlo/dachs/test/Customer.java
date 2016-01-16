@@ -15,11 +15,12 @@ import javax.persistence.Version;
 import com.ethlo.dachs.EntityListenerIgnore;
 
 @Entity
-public class Customer {
-
+public class Customer
+{
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private Long id;
+    
     private String firstName;
     private String lastName;
     

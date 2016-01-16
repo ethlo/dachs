@@ -29,4 +29,22 @@ public class EclipseLinkToSpringContextBridge extends DescriptorEventAdapter
 	{
 		handler.postUpdateEvent(event);
 	}
+
+	@Override
+	public void prePersist(DescriptorEvent event)
+	{
+		handler.prePersistEvent(event);
+	}
+
+	@Override
+	public void preDelete(DescriptorEvent event)
+	{
+		handler.preRemoveEvent(event);
+	}
+
+	@Override
+	public void preUpdate(DescriptorEvent event)
+	{
+		handler.preUpdateEvent(event);
+	}
 }

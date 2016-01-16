@@ -1,10 +1,13 @@
 package com.ethlo.dachs;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
-public interface EntityData
+/**
+ * Represents a single entity change which consists of one or more <code>{@link PropertyChange}</code>s.
+ */
+public interface EntityDataChange
 {
 	/**
 	 * Returns the id of the entity
@@ -22,7 +25,7 @@ public interface EntityData
 	 * Get all propertyChanges
 	 * @return A list of all property changes for this entity
 	 */
-	Collection<PropertyChange<?>> getPropertyChanges();
+	List<PropertyChange<?>> getPropertyChanges();
 
 	/**
 	 * Get a {@link PropertyChange} for the given propertyName of this entity

@@ -1,6 +1,9 @@
 package com.ethlo.dachs;
 
-public interface EntityListener
+/**
+ * Listener used for bridging events from the persistence framework to Dachs
+ */
+public interface InternalEntityListener
 {
 	void preCreate(EntityDataChange entityData);
 

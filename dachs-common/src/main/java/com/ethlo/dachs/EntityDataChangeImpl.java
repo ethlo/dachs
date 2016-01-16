@@ -1,23 +1,25 @@
 package com.ethlo.dachs;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 
-public class EntityDataImpl implements EntityData
+public class EntityDataChangeImpl implements EntityDataChange
 {
-	private final Serializable id;
+	private Serializable id;
 	private final Object entity;
 	private final Map<String, PropertyChange<?>> properties;
 	
-	public EntityDataImpl(Serializable id, Object entity, Collection<PropertyChange<?>> properties)
+	public EntityDataChangeImpl(Serializable id, Object entity, Collection<PropertyChange<?>> properties)
 	{
 		this.id = id;
 		this.entity = entity;
-		this.properties = new LinkedHashMap<>();
+		this.properties = new TreeMap<>();
 		for (PropertyChange<?> propertyChange : properties)
 		{
 			this.properties.put(propertyChange.getPropertyName(), propertyChange);
@@ -37,9 +39,9 @@ public class EntityDataImpl implements EntityData
 	}
 
 	@Override
-	public Collection<PropertyChange<?>> getPropertyChanges()
+	public List<PropertyChange<?>> getPropertyChanges()
 	{
-		return properties.values();
+		return new ArrayList<>(this.properties.values());
 	}
 	
 	@Override
@@ -62,9 +64,9 @@ public class EntityDataImpl implements EntityData
 	@Override
 	public boolean equals(Object obj)
 	{
-		if (obj instanceof EntityDataImpl)
+		if (obj instanceof EntityDataChangeImpl)
 		{
-			final EntityDataImpl b = (EntityDataImpl) obj;
+			final EntityDataChangeImpl b = (EntityDataChangeImpl) obj;
 			return Objects.equals(id, b.id) 
 				&& Objects.equals(entity, b.entity)
 				&& Objects.equals(properties, b.properties);
@@ -76,5 +78,16 @@ public class EntityDataImpl implements EntityData
 	public String toString()
 	{
 		return "EntityData [id=" + id + ", entity=" + entity + ", properties=" + properties + "]";
+	}
+
+	public void setId(Serializable id)
+	{
+		this.id = id;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void prependIdPropertyChange(String idPropertyName, Serializable id)
+	{
+		this.properties.put(idPropertyName, new PropertyChange(idPropertyName, id.getClass(), null, id));
 	}
 }

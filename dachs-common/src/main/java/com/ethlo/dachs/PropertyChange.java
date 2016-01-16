@@ -26,7 +26,7 @@ public class PropertyChange<T>
 		return propertyName;
 	}
 
-	public Class<T> getEntityType()
+	public Class<T> getPropertyType()
 	{
 		return entityType;
 	}

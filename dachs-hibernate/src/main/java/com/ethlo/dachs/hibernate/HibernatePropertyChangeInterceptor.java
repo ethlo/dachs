@@ -9,38 +9,32 @@ import java.util.Objects;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
 
-import com.ethlo.dachs.EntityListener;
-import com.ethlo.dachs.EntityDataImpl;
+import com.ethlo.dachs.EntityDataChangeImpl;
+import com.ethlo.dachs.InternalEntityListener;
 import com.ethlo.dachs.PropertyChange;
 
 public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
 {
 	private static final long serialVersionUID = 4618098551981894684L;
 	
-	private EntityListener[] listeners;
+	private InternalEntityListener listener;
 
-	public HibernatePropertyChangeInterceptor(EntityListener... listeners)
+	public HibernatePropertyChangeInterceptor(InternalEntityListener listener)
 	{
-		this.listeners = listeners;
+		this.listener = listener;
 	}
 	
 	@Override
 	public void onDelete(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types) {
 		final Collection<PropertyChange<?>> props = getProperties(entity, new Object[state.length], state, propertyNames, types);
-		for (EntityListener listener : listeners)
-		{
-			listener.deleted(new EntityDataImpl(id, entity, props));
-		}
+		listener.deleted(new EntityDataChangeImpl(id, entity, props));
 	}
 
 	@Override
 	public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types)
 	{
 		final Collection<PropertyChange<?>> props = getProperties(entity, state, new Object[state.length], propertyNames, types);
-		for (EntityListener listener : listeners)
-		{
-			listener.created(new EntityDataImpl(id, entity, props));
-		}
+		listener.created(new EntityDataChangeImpl(id, entity, props));
 		return false;
 	}
 
@@ -48,10 +42,7 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
 	public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState, String[] propertyNames, Type[] types) 
 	{
 		final Collection<PropertyChange<?>> props = getProperties(entity, currentState, previousState, propertyNames, types);
-		for (EntityListener listener : listeners)
-		{
-			listener.updated(new EntityDataImpl(id, entity, props));
-		}
+		listener.updated(new EntityDataChangeImpl(id, entity, props));
 		return false;
 	}
 	

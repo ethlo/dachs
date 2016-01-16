@@ -7,7 +7,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnitUtil;
 
 import org.eclipse.persistence.config.PersistenceUnitProperties;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaBaseConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
@@ -17,7 +16,10 @@ import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.ethlo.dachs.CollectingEntityListener;
+import com.ethlo.dachs.CollectingEntityChangeSetListener;
+import com.ethlo.dachs.EntityChangeSetListener;
+import com.ethlo.dachs.InternalEntityListener;
+import com.ethlo.dachs.jpa.JpaTransactionManagerInterceptor;
 import com.ethlo.dachs.test.Customer;
 import com.ethlo.dachs.test.CustomerRepository;
 
@@ -27,8 +29,11 @@ import com.ethlo.dachs.test.CustomerRepository;
 @EntityScan(basePackageClasses=Customer.class)
 public class EclipselinkCfg extends JpaBaseConfiguration
 {
-	@Autowired
-	private com.ethlo.dachs.EntityListener entityListener;
+	@Bean
+	public CollectingEntityChangeSetListener collectingListener()
+	{
+		return new CollectingEntityChangeSetListener();
+	}
 	
 	@Override
 	protected AbstractJpaVendorAdapter createJpaVendorAdapter()
@@ -47,17 +52,17 @@ public class EclipselinkCfg extends JpaBaseConfiguration
 	}
 	
 	@Bean
-	public CollectingEntityListener collectingListener()
+	public EclipseLinkToSpringContextBridge eclipseLinkToSpringContextBridge(EntityManagerFactory emf, InternalEntityListener internalEntityListener)
 	{
-		return new CollectingEntityListener();
+		final PersistenceUnitUtil persistenceUnitUtil = emf.getPersistenceUnitUtil();
+		final EclipseLinkAuditingLoggerHandler handler = new EclipseLinkAuditingLoggerHandler(persistenceUnitUtil, internalEntityListener);
+		EclipseLinkToSpringContextBridge.setEntityChangeListener(handler);
+		return new EclipseLinkToSpringContextBridge();
 	}
 	
 	@Bean
-	public EclipseLinkToSpringContextBridge eclipseLinkToSpringContextBridge(EntityManagerFactory emf)
+	public static JpaTransactionManagerInterceptor transactionManager(EntityManagerFactory emf, EntityChangeSetListener listener)
 	{
-		final PersistenceUnitUtil persistenceUnitUtil = emf.getPersistenceUnitUtil();
-		final EclipseLinkAuditingLoggerHandler handler = new EclipseLinkAuditingLoggerHandler(persistenceUnitUtil, entityListener);
-		EclipseLinkToSpringContextBridge.setEntityChangeListener(handler);
-		return new EclipseLinkToSpringContextBridge();
+		return new JpaTransactionManagerInterceptor(emf, listener);
 	}
 }

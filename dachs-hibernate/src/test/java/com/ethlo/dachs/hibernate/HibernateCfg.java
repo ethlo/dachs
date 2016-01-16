@@ -3,7 +3,8 @@ package com.ethlo.dachs.hibernate;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.persistence.EntityManagerFactory;
+
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaBaseConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
@@ -13,8 +14,10 @@ import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.ethlo.dachs.EntityListener;
-import com.ethlo.dachs.CollectingEntityListener;
+import com.ethlo.dachs.CollectingEntityChangeSetListener;
+import com.ethlo.dachs.EntityChangeSetListener;
+import com.ethlo.dachs.InternalEntityListener;
+import com.ethlo.dachs.jpa.JpaTransactionManagerInterceptor;
 import com.ethlo.dachs.test.Customer;
 import com.ethlo.dachs.test.CustomerRepository;
 
@@ -24,19 +27,40 @@ import com.ethlo.dachs.test.CustomerRepository;
 @EntityScan(basePackageClasses=Customer.class)
 public class HibernateCfg extends JpaBaseConfiguration
 {
+	//@Autowired
+	//private HibernatePropertyChangeInterceptor hibernatePropertyChangeInterceptor; 
+
 	@Bean
-	public CollectingEntityListener collectingListener()
+	public HibernatePropertyChangeInterceptor interceptor(InternalEntityListener internalEntityListener)
 	{
-		return new CollectingEntityListener();
+		return new HibernatePropertyChangeInterceptor(internalEntityListener);
 	}
 	
-	@Autowired
-	private EntityListener listener;
+	@Bean
+	public CollectingEntityChangeSetListener collectingListener()
+	{
+		return new CollectingEntityChangeSetListener();
+	}
 	
 	@Override
 	protected AbstractJpaVendorAdapter createJpaVendorAdapter()
 	{
 		return new HibernateJpaVendorAdapter();
+	}
+	
+	@Bean
+	public static JpaTransactionManagerInterceptor transactionManager(EntityManagerFactory emf, EntityChangeSetListener listener)
+	{
+		final JpaTransactionManagerInterceptor txnManager = new JpaTransactionManagerInterceptor(emf, listener);
+		txnManager.setLazyIdExtractor(new HibernateLazyIdExtractor(emf));
+		return txnManager;
+	}
+	
+	@Bean
+	public HibernatePropertyChangeInterceptorBridge bridge(HibernatePropertyChangeInterceptor interceptor)
+	{
+		HibernatePropertyChangeInterceptorBridge.setHibernatePropertyChangeInterceptor(interceptor);
+		return new HibernatePropertyChangeInterceptorBridge();
 	}
 
 	@Override
@@ -45,9 +69,7 @@ public class HibernateCfg extends JpaBaseConfiguration
 		final Map<String, Object> retVal = new TreeMap<>();
 		
 		// Connecting the listener to Dachs
-		final HibernatePropertyChangeInterceptor interceptor = new HibernatePropertyChangeInterceptor(new EntityListener[]{listener});
-		retVal.put("hibernate.ejb.interceptor", interceptor);
-		
+		retVal.put("hibernate.ejb.interceptor", new HibernatePropertyChangeInterceptorBridge());
 		retVal.put("hibernate.hbm2ddl.auto", "create");
 		return retVal;
 	}

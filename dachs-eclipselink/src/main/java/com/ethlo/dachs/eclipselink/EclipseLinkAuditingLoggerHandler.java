@@ -16,10 +16,10 @@ import org.springframework.beans.ConfigurablePropertyAccessor;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.util.ReflectionUtils;
 
-import com.ethlo.dachs.EntityData;
-import com.ethlo.dachs.EntityDataImpl;
-import com.ethlo.dachs.EntityListener;
+import com.ethlo.dachs.EntityDataChange;
+import com.ethlo.dachs.EntityDataChangeImpl;
 import com.ethlo.dachs.EntityListenerIgnore;
+import com.ethlo.dachs.InternalEntityListener;
 import com.ethlo.dachs.PropertyChange;
 import com.ethlo.dachs.jpa.EntityUtil;
 
@@ -28,15 +28,15 @@ import com.ethlo.dachs.jpa.EntityUtil;
  * @author mha
  *
  */
-public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter implements EntityEventListener<DescriptorEvent>
+public class EclipseLinkAuditingLoggerHandler implements EntityEventListener<DescriptorEvent>
 {
 	private PersistenceUnitUtil persistenceUnitUtil;
 	private EntityUtil entityUtil;
-	private EntityListener[] entityListeners;
+	private InternalEntityListener listener;
 
-	public EclipseLinkAuditingLoggerHandler(PersistenceUnitUtil persistenceUnitUtil, EntityListener... entityListeners)
+	public EclipseLinkAuditingLoggerHandler(PersistenceUnitUtil persistenceUnitUtil, InternalEntityListener internalEntityListener)
 	{
-		this.entityListeners = entityListeners;
+		this.listener = internalEntityListener;
 	    this.persistenceUnitUtil = persistenceUnitUtil;
 	    this.entityUtil = new EntityUtil(persistenceUnitUtil);
 	}
@@ -44,21 +44,15 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 	@Override
 	public void postPersistEvent(DescriptorEvent event)
 	{
-		final EntityData e = new EntityDataImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject()));
-		for (EntityListener listener : entityListeners)
-		{
-			listener.created(e);
-		}
+		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject()));
+		listener.created(e);
 	}
 
 	@Override
 	public void postRemoveEvent(DescriptorEvent event) 
 	{
-		final EntityData e = new EntityDataImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event));
-		for (EntityListener listener : entityListeners)
-		{
-			listener.deleted(e);
-		}
+		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event));
+		listener.deleted(e);
 	}
 	
 	@Override
@@ -67,12 +61,9 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 		final Serializable key = getObjectId(event.getObject());
 		final Object entity = event.getObject();
 		final Collection<PropertyChange<?>> properties = handleModification(event);
-		final EntityData e = new EntityDataImpl(key, entity, properties);
+		final EntityDataChange e = new EntityDataChangeImpl(key, entity, properties);
 		
-		for (EntityListener listener : entityListeners)
-		{
-			listener.updated(e);
-		}
+		listener.updated(e);
 	}
 	
 	private List<PropertyChange<?>> handleModification(DescriptorEvent event)
@@ -121,8 +112,35 @@ public class EclipseLinkAuditingLoggerHandler extends EntityListenerAdapter impl
 			{
 				return (Serializable) entityId;
 			}
-			throw new IllegalArgumentException("entityId must be a Serializable");
+			throw new IllegalArgumentException("Entity ID must be Serializable");
 		}
 		return null;
+	}
+
+	@Override
+	public void prePersistEvent(DescriptorEvent event)
+	{
+		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject()));
+
+		listener.preCreate(e);
+	}
+
+	@Override
+	public void preRemoveEvent(DescriptorEvent event)
+	{
+		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event));
+
+		listener.preDelete(e);
+	}
+
+	@Override
+	public void preUpdateEvent(DescriptorEvent event)
+	{
+		final Serializable key = getObjectId(event.getObject());
+		final Object entity = event.getObject();
+		final Collection<PropertyChange<?>> properties = handleModification(event);
+		final EntityDataChange e = new EntityDataChangeImpl(key, entity, properties);
+		
+		listener.preUpdate(e);
 	}
 }

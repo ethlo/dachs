@@ -1,0 +1,39 @@
+package com.ethlo.dachs;
+
+/**
+ * Simple listener that collects all events so they can be inspected later. Mostly useful for testing purposes. 
+ */
+public class CollectingEntityChangeSetListener implements EntityChangeSetListener
+{
+	private EntityDataChangeSet preDataChangeSet;
+	private EntityDataChangeSet postDataChangeSet;
+
+	@Override
+	public void preDataChanged(EntityDataChangeSet changeset)
+	{
+		this.preDataChangeSet = changeset;
+	}
+
+	@Override
+	public void postDataChanged(EntityDataChangeSet changeset)
+	{
+		this.postDataChangeSet = changeset;
+	}
+
+	@Override
+	public void begin()
+	{
+		this.preDataChangeSet = null;
+		this.postDataChangeSet = null;
+	}
+
+	public EntityDataChangeSet getPreDataChangeSet()
+	{
+		return preDataChangeSet;
+	}
+
+	public EntityDataChangeSet getPostDataChangeSet()
+	{
+		return postDataChangeSet;
+	}
+}

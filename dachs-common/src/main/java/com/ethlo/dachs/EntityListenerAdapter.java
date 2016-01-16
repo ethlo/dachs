@@ -3,17 +3,32 @@ package com.ethlo.dachs;
 public class EntityListenerAdapter implements EntityListener
 {
 	@Override
-	public void created(EntityData entityData)
+	public void created(EntityDataChange entityData)
 	{
 	}
 
 	@Override
-	public void updated(EntityData entityData)
+	public void updated(EntityDataChange entityData)
 	{
 	}
 
 	@Override
-	public void deleted(EntityData entityData)
+	public void deleted(EntityDataChange entityData)
+	{
+	}
+
+	@Override
+	public void preCreate(EntityDataChange entityData)
+	{
+	}
+
+	@Override
+	public void preUpdate(EntityDataChange entityData)
+	{
+	}
+
+	@Override
+	public void preDelete(EntityDataChange entityData)
 	{
 	}
 }
