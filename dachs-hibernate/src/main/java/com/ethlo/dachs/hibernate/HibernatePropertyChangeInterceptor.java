@@ -1,6 +1,7 @@
 package com.ethlo.dachs.hibernate;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -50,7 +51,12 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
 	
 	private boolean isIgnored(Object entity, String propertyName)
 	{
-		return (ReflectionUtils.findField(entity.getClass(), propertyName).getAnnotation(EntityListenerIgnore.class) != null);
+		final Field field = ReflectionUtils.findField(entity.getClass(), propertyName);
+		if (field == null)
+		{
+			return true;
+		}
+		return (field.getAnnotation(EntityListenerIgnore.class) != null);
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })

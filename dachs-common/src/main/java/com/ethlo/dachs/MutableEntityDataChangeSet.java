@@ -33,4 +33,11 @@ public class MutableEntityDataChangeSet implements EntityDataChangeSet
 	{
 		return deleted;
 	}
+
+	@Override
+	public String toString() {
+		return "ChangeSet [" + created.size() + " created=" + created + ", " + updated.size() + " updated=" + updated + ", " + deleted.size() + " deleted=" + deleted + "]";
+	}
+	
+	
 }

@@ -90,4 +90,6 @@ public class EntityDataChangeImpl implements EntityDataChange
 	{
 		this.properties.put(idPropertyName, new PropertyChange(idPropertyName, id.getClass(), deleted ? id : null, deleted ? null : id));
 	}
+	
+	
 }

@@ -11,6 +11,17 @@
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>1.3.1.RELEASE</version>
 	</parent>
+	<scm>
+		<url>http://github.com:ethlo/dachs</url>
+		<connection>scm:git:git@github.com:ethlo/dachs.git</connection>
+		<developerConnection>scm:git:git@github.com:ethlo/dachs.git</developerConnection>
+	</scm>
+	<distributionManagement>
+		<repository>
+			<id>ethlo-repo</id>
+			<url>scp://scp.domeneshop.no//home/3/e/ethlo/www/maven</url>
+		</repository>
+	</distributionManagement>
 	<modules>
 		<module>dachs-eclipselink</module>
 		<module>dachs-hibernate</module>
@@ -19,6 +30,13 @@
 		<module>dachs-common-jpa</module>
 	</modules>
 	<build>
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh</artifactId>
+				<version>2.10</version>
+			</extension>
+		</extensions>
 		<pluginManagement>
 			<plugins>
 				<plugin>
