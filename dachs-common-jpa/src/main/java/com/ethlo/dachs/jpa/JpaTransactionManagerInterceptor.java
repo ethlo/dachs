@@ -3,6 +3,7 @@ package com.ethlo.dachs.jpa;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.EntityManagerFactory;
@@ -101,14 +102,21 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	{
 		if (this.lazyIdExtractor != null)
 		{
-			for (EntityDataChange created : cs.getCreated())
-			{
-				final EntityDataChangeImpl impl = (EntityDataChangeImpl) created;
-				final Serializable id = lazyIdExtractor.extractId(created.getEntity());
-				impl.setId(id);
-				final String propertyName = lazyIdExtractor.extractIdPropertyName(created.getEntity());
-				impl.prependIdPropertyChange(propertyName, id);
-			}
+			doSetId(cs.getCreated(), false);
+			//doSetId(cs.getUpdated(), false);
+			doSetId(cs.getDeleted(), true);
+		}
+	}
+
+	private void doSetId(List<EntityDataChange> list, boolean deleted)
+	{
+		for (EntityDataChange created : list)
+		{
+			final EntityDataChangeImpl impl = (EntityDataChangeImpl) created;
+			final Serializable id = lazyIdExtractor.extractId(created.getEntity());
+			impl.setId(id);
+			final String propertyName = lazyIdExtractor.extractIdPropertyName(created.getEntity());
+			impl.prependIdPropertyChange(propertyName, id, deleted);
 		}
 	}
 

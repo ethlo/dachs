@@ -3,29 +3,35 @@ package com.ethlo.dachs.test;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.StringUtils;
 
 import com.ethlo.dachs.CollectingEntityChangeSetListener;
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.PropertyChange;
 
 @RunWith(SpringJUnit4ClassRunner.class)
+@Sql(value="classpath:init.sql", executionPhase=ExecutionPhase.BEFORE_TEST_METHOD)
 public class DataRepositoryTest
 {
 	@PersistenceContext
@@ -41,17 +47,23 @@ public class DataRepositoryTest
 	private CollectingEntityChangeSetListener listener;
 
 	@Test
+	@DirtiesContext
+	//@Sql(value="classpath:init.sql", executionPhase=ExecutionPhase.BEFORE_TEST_METHOD)
 	public void testCreate()
 	{
 		final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
 		
+		final AtomicLong firstId = new AtomicLong();
 		txTpl.execute(new TransactionCallbackWithoutResult()
 		{
 			@Override
 			protected void doInTransactionWithoutResult(TransactionStatus status)
 			{
 				// Create
-				repository.save(new Customer("Jack", "Bauer"));
+				final Customer first = repository.save(new Customer("Jack", "Bauer"));
+				em.flush();
+				firstId.set(first.getId());
+				
 				repository.save(new Customer("Chloe", "O'Brian"));
 				repository.save(new Customer("Kim", "Bauer"));
 			}
@@ -59,24 +71,27 @@ public class DataRepositoryTest
 		
 		final List<EntityDataChange> created = listener.getPostDataChangeSet().getCreated();
 		Assert.assertEquals(3, created.size());
-		
-		final EntityDataChange created1 = getById(created, 1L);
-		assertThat(created1.getId()).isEqualTo(1L);
+		final EntityDataChange created1 = getById(created, firstId.get());
+		assertThat(created1.getId()).isEqualTo(firstId.get());
 		assertThat(created1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
 		final List<PropertyChange<?>> createChanges1 = created1.getPropertyChanges();
 		assertThat(createChanges1.size()).isEqualTo(4);
 		assertMatch(createChanges1.get(0), "firstName", String.class, null, "Jack");
-		assertMatch(createChanges1.get(1), "id", Long.class, null, 1L);
+		assertMatch(createChanges1.get(1), "id", Long.class, null, firstId.get());
 		assertMatch(createChanges1.get(2), "lastName", String.class, null, "Bauer");
 		assertMatch(createChanges1.get(3), "tags", Set.class, null, new HashSet<>());
 		
+		final AtomicLong joeId = new AtomicLong();
 		txTpl.execute(new TransactionCallbackWithoutResult()
 		{
 			@Override
 			protected void doInTransactionWithoutResult(TransactionStatus status)
 			{
 				// Create
-				repository.save(new Customer("Joe", "Cocker"));
+				final Customer joe = repository.save(new Customer("Joe", "Cocker"));
+				em.flush();
+				joeId.set(joe.getId());
+				
 				repository.save(new Customer("Michael", "Jackson"));
 			}
 		});
@@ -84,13 +99,13 @@ public class DataRepositoryTest
 		final List<EntityDataChange> createdM = listener.getPostDataChangeSet().getCreated();
 		Assert.assertEquals(2, createdM.size());
 		
-		final EntityDataChange createdM1 = getById(createdM, 4L);
-		assertThat(createdM1.getId()).isEqualTo(4L);
+		final EntityDataChange createdM1 = getById(createdM, joeId.get());
+		assertThat(createdM1.getId()).isEqualTo(joeId.get());
 		assertThat(createdM1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
 		final List<PropertyChange<?>> createChangesM1 = createdM1.getPropertyChanges();
 		assertThat(createChangesM1.size()).isEqualTo(4);
 		assertMatch(createChangesM1.get(0), "firstName", String.class, null, "Joe");
-		assertMatch(createChangesM1.get(1), "id", Long.class, null, 4L);
+		assertMatch(createChangesM1.get(1), "id", Long.class, null, 5L);
 		assertMatch(createChangesM1.get(2), "lastName", String.class, null, "Cocker");
 		assertMatch(createChangesM1.get(3), "tags", Set.class, null, new HashSet<>());
 	}
@@ -135,8 +150,37 @@ public class DataRepositoryTest
 		assertThat(updated1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
 		final List<PropertyChange<?>> updateChanges1 = updated1.getPropertyChanges();
 		assertThat(updateChanges1.size()).isEqualTo(2);
-		assertMatch(updateChanges1.get(0), "firstName", String.class, "Jack", "Jack_updated");
-		assertMatch(updateChanges1.get(1), "lastName", String.class, "Bauer", "Bauer_updated");
+		assertMatch(updateChanges1.get(0), "firstName", String.class, "Hugh", "Hugh_updated");
+		assertMatch(updateChanges1.get(1), "lastName", String.class, "Jackman", "Jackman_updated");
+	}
+	
+	@Test
+	public void testDelete()
+	{
+		final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
+		
+		txTpl.execute(new TransactionCallbackWithoutResult()
+		{
+			@Override
+			protected void doInTransactionWithoutResult(TransactionStatus status)
+			{
+				final Customer existing1 = repository.findOne(1L);
+				repository.delete(existing1);
+			}
+		});
+		
+		final List<EntityDataChange> deleted = listener.getPostDataChangeSet().getDeleted();
+		Assert.assertEquals(1, deleted.size());
+		
+		final EntityDataChange deleted1 = getById(deleted, 1L);
+		assertThat(deleted1.getId()).isEqualTo(1L);
+		assertThat(deleted1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
+		final List<PropertyChange<?>> deleteChanges1 = deleted1.getPropertyChanges();
+		assertThat(deleteChanges1.size()).isEqualTo(4);
+		assertMatch(deleteChanges1.get(0), "firstName", String.class, "Hugh", null);
+		assertMatch(deleteChanges1.get(1), "id", Long.class, 1L, null);
+		assertMatch(deleteChanges1.get(2), "lastName", String.class, "Jackman", null);
+		assertMatch(deleteChanges1.get(3), "tags", Set.class, new LinkedHashSet<>(), null);
 	}
 
 	private EntityDataChange getById(List<EntityDataChange> changes, long id)
@@ -159,16 +203,22 @@ public class DataRepositoryTest
 		assertThat(change.getNewValue()).isEqualTo(newValue);
 	}
 	
-	@Ignore
 	@Test
 	public void performanceTest()
 	{
-		final int iterations = 20_000;
-		for (int i = 0; i < iterations; i++)
+		final int iterations = 1_000;
+		final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
+		txTpl.execute(new TransactionCallbackWithoutResult()
 		{
-			repository.save(new Customer("Foo", "Bar " + i));
-		}
-		
+			@Override
+			protected void doInTransactionWithoutResult(TransactionStatus status)
+			{
+				for (int i = 0; i < iterations; i++)
+				{
+					repository.save(new Customer("Foo", "Bar " + i));
+				}
+			}
+		});
 		Assert.assertEquals(iterations, listener.getPostDataChangeSet().getCreated().size());
 	}
 }

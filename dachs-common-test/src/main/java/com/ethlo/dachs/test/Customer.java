@@ -18,7 +18,7 @@ import com.ethlo.dachs.EntityListenerIgnore;
 public class Customer
 {
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
     
     private String firstName;
@@ -69,6 +69,11 @@ public class Customer
 	public void setLastName(String lastName)
 	{
 		this.lastName = lastName;
+	}
+
+	public Long getId()
+	{
+		return this.id;
 	}
 }
 

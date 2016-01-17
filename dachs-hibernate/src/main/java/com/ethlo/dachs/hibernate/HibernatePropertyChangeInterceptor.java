@@ -8,8 +8,10 @@ import java.util.Objects;
 
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
+import org.springframework.util.ReflectionUtils;
 
 import com.ethlo.dachs.EntityDataChangeImpl;
+import com.ethlo.dachs.EntityListenerIgnore;
 import com.ethlo.dachs.InternalEntityListener;
 import com.ethlo.dachs.PropertyChange;
 
@@ -46,15 +48,22 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
 		return false;
 	}
 	
+	private boolean isIgnored(Object entity, String propertyName)
+	{
+		return (ReflectionUtils.findField(entity.getClass(), propertyName).getAnnotation(EntityListenerIgnore.class) != null);
+	}
+	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Collection<PropertyChange<?>> getProperties(Object entity, Object[] currentState, Object[] previousState, String[] propertyNames, Type[] types)
 	{
 		final List<PropertyChange<?>> retVal = new ArrayList<>();
 		for (int i = 0; i < propertyNames.length; i++)
 		{
-			if (! Objects.equals(previousState[i], currentState[i]))
+			final String propertyName = propertyNames[i];
+			if (!isIgnored(entity, propertyName) 
+				&& !Objects.equals(previousState[i], currentState[i]))
 			{
-				final PropertyChange changed = new PropertyChange(propertyNames[i], types[i].getReturnedClass(), previousState[i], currentState[i]);
+				final PropertyChange changed = new PropertyChange(propertyName, types[i].getReturnedClass(), previousState[i], currentState[i]);
 				retVal.add(changed);
 			}
 		}

@@ -19,7 +19,7 @@ public class HibernatePropertyChangeInterceptorBridge extends EmptyInterceptor
 	@Override
 	public void onDelete(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types)
 	{
-		instance.onSave(entity, id, state, propertyNames, types);
+		instance.onDelete(entity, id, state, propertyNames, types);
 	}
 
 	@Override

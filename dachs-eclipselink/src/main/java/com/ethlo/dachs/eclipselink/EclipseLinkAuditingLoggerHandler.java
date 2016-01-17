@@ -48,14 +48,14 @@ public class EclipseLinkAuditingLoggerHandler implements EntityEventListener<Des
 	@Override
 	public void postPersistEvent(DescriptorEvent event)
 	{
-		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject()));
+		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), false));
 		listener.created(e);
 	}
 
 	@Override
 	public void postRemoveEvent(DescriptorEvent event) 
 	{
-		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event));
+		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), true));
 		listener.deleted(e);
 	}
 	
@@ -157,21 +157,13 @@ public class EclipseLinkAuditingLoggerHandler implements EntityEventListener<Des
 			return null;
 		}
 		final Object entityId = persistenceUnitUtil.getIdentifier(obj);
-		if (entityId != null)
-		{
-			if (Serializable.class.isAssignableFrom(entityId.getClass()))
-			{
-				return (Serializable) entityId;
-			}
-			throw new IllegalArgumentException("Entity ID must be Serializable");
-		}
-		return null;
+		return (Serializable) entityId;
 	}
 
 	@Override
 	public void prePersistEvent(DescriptorEvent event)
 	{
-		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject()));
+		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), false));
 
 		listener.preCreate(e);
 	}
@@ -179,7 +171,7 @@ public class EclipseLinkAuditingLoggerHandler implements EntityEventListener<Des
 	@Override
 	public void preRemoveEvent(DescriptorEvent event)
 	{
-		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event));
+		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), true));
 
 		listener.preDelete(e);
 	}

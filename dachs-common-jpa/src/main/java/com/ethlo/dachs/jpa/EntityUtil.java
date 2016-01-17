@@ -27,7 +27,7 @@ public class EntityUtil
 		this.persistenceUnitUtil = persistenceUnitUtil;
 	}
 
-	public List<PropertyChange<?>> extractEntityProperties(Object target)
+	public List<PropertyChange<?>> extractEntityProperties(Object target, boolean deleted)
 	{
 		final List<PropertyChange<?>> propChanges = new ArrayList<PropertyChange<?>>();
 		final Map<String, Field> fieldMap = new HashMap<String, Field>();
@@ -42,7 +42,7 @@ public class EntityUtil
 					fieldMap.put(fieldName, field);
 					if (! Modifier.isTransient(field.getModifiers()))
 					{
-						extractChangeData(propChanges, target, field);
+						extractChangeData(propChanges, target, field, deleted);
 					}
 				}
 			}
@@ -81,7 +81,7 @@ public class EntityUtil
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private <T> void extractChangeData(final List<PropertyChange<?>> propChanges, final Object target, Field field)
+	private <T> void extractChangeData(final List<PropertyChange<?>> propChanges, final Object target, Field field, boolean deleted)
 	{
 		if (field.getAnnotation(EntityListenerIgnore.class) != null)
 		{
@@ -101,14 +101,14 @@ public class EntityUtil
 			if (value != null)
 			{
 				final Object id = persistenceUnitUtil.getIdentifier(value);
-				propChanges.add(new PropertyChange(fieldName, id.getClass(), null, id));
+				propChanges.add(new PropertyChange(fieldName, id.getClass(), deleted ? id : null, deleted ? null : id));
 			}
 		}
 		else
 		{
 			if (value != null)
 			{
-				propChanges.add(new PropertyChange(fieldName, field.getType(), null, value));
+				propChanges.add(new PropertyChange(fieldName, field.getType(), deleted ? value : null, deleted ? null : value));
 			}
 		}
 	}

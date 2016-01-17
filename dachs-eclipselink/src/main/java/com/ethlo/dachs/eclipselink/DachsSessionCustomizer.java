@@ -15,10 +15,10 @@ public class DachsSessionCustomizer implements SessionCustomizer
 	{
 		handler = new EclipseLinkToSpringContextBridge();
 		
+		@SuppressWarnings("rawtypes")
 		final Map<Class, ClassDescriptor> descriptors = session.getDescriptors();
 		for (ClassDescriptor descriptor : descriptors.values())
 		{
-			final Class<?> clazz = descriptor.getJavaClass();
 			descriptor.getDescriptorEventManager().addEntityListenerEventListener(handler);
 		}
 	}

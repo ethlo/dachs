@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.ethlo</groupId>
+		<groupId>com.ethlo.dachs</groupId>
 		<artifactId>dachs</artifactId>
 		<version>1.0-SNAPSHOT</version>
 	</parent>
@@ -11,19 +11,19 @@
 	<description>Dachs module for Hibernate</description>
 	<dependencies>
 		<dependency>
-			<groupId>com.ethlo</groupId>
+			<groupId>com.ethlo.dachs</groupId>
 			<artifactId>dachs-common-jpa</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-entitymanager</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.ethlo</groupId>
+			<groupId>com.ethlo.dachs</groupId>
 			<artifactId>dachs-common-test</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
