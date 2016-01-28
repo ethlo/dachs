@@ -1,5 +1,6 @@
 package com.ethlo.dachs.eclipselink;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -16,7 +17,9 @@ import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.ethlo.dachs.CollectingEntityChangeListener;
 import com.ethlo.dachs.CollectingEntityChangeSetListener;
+import com.ethlo.dachs.EntityChangeListener;
 import com.ethlo.dachs.EntityChangeSetListener;
 import com.ethlo.dachs.InternalEntityListener;
 import com.ethlo.dachs.jpa.JpaTransactionManagerInterceptor;
@@ -30,9 +33,15 @@ import com.ethlo.dachs.test.CustomerRepository;
 public class EclipselinkCfg extends JpaBaseConfiguration
 {
 	@Bean
-	public CollectingEntityChangeSetListener collectingListener()
+	public CollectingEntityChangeSetListener collectingSetListener()
 	{
 		return new CollectingEntityChangeSetListener();
+	}
+	
+	@Bean
+	public CollectingEntityChangeListener collectingListener()
+	{
+		return new CollectingEntityChangeListener();
 	}
 	
 	@Override
@@ -61,8 +70,8 @@ public class EclipselinkCfg extends JpaBaseConfiguration
 	}
 	
 	@Bean
-	public static JpaTransactionManagerInterceptor transactionManager(EntityManagerFactory emf, EntityChangeSetListener listener)
+	public static JpaTransactionManagerInterceptor transactionManager(EntityManagerFactory emf, EntityChangeSetListener txnListener, EntityChangeListener directLlistener)
 	{
-		return new JpaTransactionManagerInterceptor(emf, listener);
+		return new JpaTransactionManagerInterceptor(emf, Arrays.asList(txnListener), Arrays.asList(directLlistener));
 	}
 }

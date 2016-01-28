@@ -1,7 +1,8 @@
 package com.ethlo.dachs;
 
 /**
- * Basic interface for listening for entity changes.
+ * Basic interface for listening for entity changes as they are reported by the persistence framework. 
+ * Use {@link EntityChangeSetListener} if you need to listen for events as they are committed.
  * 
  * @see EntityChangeSetListener
  * @see EntityListenerAdapter

@@ -1,5 +1,7 @@
 package com.ethlo.dachs;
 
+import java.util.Collections;
+
 /**
  * Simple listener that collects all events so they can be inspected later. Mostly useful for testing purposes. 
  */
@@ -29,7 +31,7 @@ public class CollectingEntityChangeSetListener implements EntityChangeSetListene
 
 	public EntityDataChangeSet getPreDataChangeSet()
 	{
-		return preDataChangeSet;
+		return preDataChangeSet != null ? preDataChangeSet : new MutableEntityDataChangeSet();
 	}
 
 	public EntityDataChangeSet getPostDataChangeSet()

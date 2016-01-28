@@ -1,5 +1,6 @@
 package com.ethlo.dachs.hibernate;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -14,7 +15,9 @@ import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.ethlo.dachs.CollectingEntityChangeListener;
 import com.ethlo.dachs.CollectingEntityChangeSetListener;
+import com.ethlo.dachs.EntityChangeListener;
 import com.ethlo.dachs.EntityChangeSetListener;
 import com.ethlo.dachs.InternalEntityListener;
 import com.ethlo.dachs.jpa.JpaTransactionManagerInterceptor;
@@ -27,9 +30,6 @@ import com.ethlo.dachs.test.CustomerRepository;
 @EntityScan(basePackageClasses=Customer.class)
 public class HibernateCfg extends JpaBaseConfiguration
 {
-	//@Autowired
-	//private HibernatePropertyChangeInterceptor hibernatePropertyChangeInterceptor; 
-
 	@Bean
 	public HibernatePropertyChangeInterceptor interceptor(InternalEntityListener internalEntityListener)
 	{
@@ -37,9 +37,15 @@ public class HibernateCfg extends JpaBaseConfiguration
 	}
 	
 	@Bean
-	public CollectingEntityChangeSetListener collectingListener()
+	public CollectingEntityChangeSetListener collectingSetListener()
 	{
 		return new CollectingEntityChangeSetListener();
+	}
+	
+	@Bean
+	public CollectingEntityChangeListener collectingListener()
+	{
+		return new CollectingEntityChangeListener();
 	}
 	
 	@Override
@@ -49,9 +55,9 @@ public class HibernateCfg extends JpaBaseConfiguration
 	}
 	
 	@Bean
-	public static JpaTransactionManagerInterceptor transactionManager(EntityManagerFactory emf, EntityChangeSetListener listener)
+	public static JpaTransactionManagerInterceptor transactionManager(EntityManagerFactory emf, EntityChangeSetListener txnBoundListener, EntityChangeListener directListener)
 	{
-		final JpaTransactionManagerInterceptor txnManager = new JpaTransactionManagerInterceptor(emf, listener);
+		final JpaTransactionManagerInterceptor txnManager = new JpaTransactionManagerInterceptor(emf, Arrays.asList(txnBoundListener), Arrays.asList(directListener));
 		txnManager.setLazyIdExtractor(new HibernateLazyIdExtractor(emf));
 		return txnManager;
 	}

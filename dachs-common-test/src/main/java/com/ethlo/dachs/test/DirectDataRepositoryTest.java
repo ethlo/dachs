@@ -13,6 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,56 +21,44 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.util.StringUtils;
 
-import com.ethlo.dachs.CollectingEntityChangeSetListener;
+import com.ethlo.dachs.CollectingEntityChangeListener;
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.PropertyChange;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @Sql(value="classpath:init.sql", executionPhase=ExecutionPhase.BEFORE_TEST_METHOD)
-public class DataRepositoryTest
+public class DirectDataRepositoryTest
 {
 	@PersistenceContext
 	private EntityManager em;
 	
 	@Autowired
-	private PlatformTransactionManager txnManager;
-	
-	@Autowired
 	private CustomerRepository repository;
 	
 	@Autowired
-	private CollectingEntityChangeSetListener listener;
+	private CollectingEntityChangeListener listener;
+	
+	@Before
+	public void clear()
+	{
+		listener.clear();
+	}
 
 	@Test
 	@DirtiesContext
-	//@Sql(value="classpath:init.sql", executionPhase=ExecutionPhase.BEFORE_TEST_METHOD)
 	public void testCreate()
 	{
-		final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
-		
 		final AtomicLong firstId = new AtomicLong();
-		txTpl.execute(new TransactionCallbackWithoutResult()
-		{
-			@Override
-			protected void doInTransactionWithoutResult(TransactionStatus status)
-			{
-				// Create
-				final Customer first = repository.save(new Customer("Jack", "Bauer"));
-				em.flush();
-				firstId.set(first.getId());
-				
-				repository.save(new Customer("Chloe", "O'Brian"));
-				repository.save(new Customer("Kim", "Bauer"));
-			}
-		});
+
+		// Create
+		final Customer first = repository.save(new Customer("Jack", "Bauer"));
+		firstId.set(first.getId());
 		
-		final List<EntityDataChange> created = listener.getPostDataChangeSet().getCreated();
+		repository.save(new Customer("Chloe", "O'Brian"));
+		repository.save(new Customer("Kim", "Bauer"));
+		
+		final List<EntityDataChange> created = listener.getPostCreated();
 		Assert.assertEquals(3, created.size());
 		final EntityDataChange created1 = getById(created, firstId.get());
 		assertThat(created1.getId()).isEqualTo(firstId.get());
@@ -82,22 +71,13 @@ public class DataRepositoryTest
 		assertMatch(createChanges1.get(3), "tags", Set.class, null, new HashSet<>());
 		
 		final AtomicLong joeId = new AtomicLong();
-		txTpl.execute(new TransactionCallbackWithoutResult()
-		{
-			@Override
-			protected void doInTransactionWithoutResult(TransactionStatus status)
-			{
-				// Create
-				final Customer joe = repository.save(new Customer("Joe", "Cocker"));
-				em.flush();
-				joeId.set(joe.getId());
-				
-				repository.save(new Customer("Michael", "Jackson"));
-			}
-		});
+		final Customer joe = repository.save(new Customer("Joe", "Cocker"));
+		joeId.set(joe.getId());
 		
-		final List<EntityDataChange> createdM = listener.getPostDataChangeSet().getCreated();
-		Assert.assertEquals(2, createdM.size());
+		repository.save(new Customer("Michael", "Jackson"));
+		
+		final List<EntityDataChange> createdM = listener.getPostCreated();
+		Assert.assertEquals(5, createdM.size());
 		
 		final EntityDataChange createdM1 = getById(createdM, joeId.get());
 		assertThat(createdM1.getId()).isEqualTo(joeId.get());
@@ -113,36 +93,18 @@ public class DataRepositoryTest
 	@Test
 	public void testUpdateNoChanges()
 	{
-		final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
-		
-		txTpl.execute(new TransactionCallbackWithoutResult()
-		{
-			@Override
-			protected void doInTransactionWithoutResult(TransactionStatus status)
-			{
-				// Just load an entity, do not perform any changes
-				repository.findOne(1L);
-			}
-		});
+		repository.findOne(1L);
 	}		
 	
 	@Test
 	public void testUpdate()
 	{
-		final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
+		final Customer existing1 = repository.findOne(1L);
+		existing1.setFirstName(existing1.getFirstName() + "_updated");
+		existing1.setLastName(existing1.getLastName() + "_updated");
+		repository.save(existing1);
 		
-		txTpl.execute(new TransactionCallbackWithoutResult()
-		{
-			@Override
-			protected void doInTransactionWithoutResult(TransactionStatus status)
-			{
-				final Customer existing1 = repository.findOne(1L);
-				existing1.setFirstName(existing1.getFirstName() + "_updated");
-				existing1.setLastName(existing1.getLastName() + "_updated");
-			}
-		});
-		
-		final List<EntityDataChange> updated = listener.getPostDataChangeSet().getUpdated();
+		final List<EntityDataChange> updated = listener.getPostUpdated();
 		Assert.assertEquals(1, updated.size());
 		
 		final EntityDataChange updated1 = getById(updated, 1L);
@@ -157,19 +119,10 @@ public class DataRepositoryTest
 	@Test
 	public void testDelete()
 	{
-		final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
+		final Customer existing1 = repository.findOne(1L);
+		repository.delete(existing1);
 		
-		txTpl.execute(new TransactionCallbackWithoutResult()
-		{
-			@Override
-			protected void doInTransactionWithoutResult(TransactionStatus status)
-			{
-				final Customer existing1 = repository.findOne(1L);
-				repository.delete(existing1);
-			}
-		});
-		
-		final List<EntityDataChange> deleted = listener.getPostDataChangeSet().getDeleted();
+		final List<EntityDataChange> deleted = listener.getPostDeleted();
 		Assert.assertEquals(1, deleted.size());
 		
 		final EntityDataChange deleted1 = getById(deleted, 1L);
@@ -207,18 +160,10 @@ public class DataRepositoryTest
 	public void performanceTest()
 	{
 		final int iterations = 1_000;
-		final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
-		txTpl.execute(new TransactionCallbackWithoutResult()
+		for (int i = 0; i < iterations; i++)
 		{
-			@Override
-			protected void doInTransactionWithoutResult(TransactionStatus status)
-			{
-				for (int i = 0; i < iterations; i++)
-				{
-					repository.save(new Customer("Foo", "Bar " + i));
-				}
-			}
-		});
-		Assert.assertEquals(iterations, listener.getPostDataChangeSet().getCreated().size());
+			repository.save(new Customer("Foo", "Bar " + i));
+		}
+		Assert.assertEquals(iterations, listener.getPostCreated().size());
 	}
 }
