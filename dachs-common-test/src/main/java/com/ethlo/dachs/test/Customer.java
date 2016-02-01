@@ -2,18 +2,23 @@ package com.ethlo.dachs.test;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import javax.persistence.CollectionTable;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import javax.persistence.Version;
 
 import com.ethlo.dachs.EntityListenerIgnore;
 
+@Table(name="customer")
 @Entity
 public class Customer
 {
@@ -24,13 +29,17 @@ public class Customer
     private String firstName;
     private String lastName;
     
+    @CollectionTable(name="customer_tags")
     @ElementCollection(fetch=FetchType.EAGER)
     private Set<String> tags = new HashSet<>();
     
     @Version
     @EntityListenerIgnore
     private Integer version;
-
+    
+    @ManyToOne(targetEntity=ProductOrder.class)
+    private List<ProductOrder> orders;
+    
     protected Customer() {}
 
     public Customer(String firstName, String lastName)
