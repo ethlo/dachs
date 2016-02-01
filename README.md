@@ -33,21 +33,34 @@ All the different persistence frameworks have their different APIs for detecting
 ### API
 The goal is to have a simple, but powerful API to get notifications of all changes to entities, that is `created`, `updated` and `deleted`.
 
+Source: [EntityChangeListener](https://github.com/ethlo/dachs/blob/master/dachs-common/src/main/java/com/ethlo/dachs/EntityChangeListener.java)
 ```java
-public interface EntityListener
+/**
+ * Basic interface for listening for entity changes as they are reported by the persistence framework. 
+ * Use {@link EntityChangeSetListener} if you need to listen for events as they are committed.
+ * 
+ * @see EntityChangeSetListener
+ * @see EntityChangeListenerAdapter
+ */
+public interface EntityChangeListener
 {
-	void created(EntityData entityData);
-	void updated(EntityData entityData);
-	void deleted(EntityData entityData);
+	void preCreate(EntityDataChange entityData);
+	void preUpdate(EntityDataChange entityData);
+	void preDelete(EntityDataChange entityData);
+	void created(EntityDataChange entityData);
+	void updated(EntityDataChange entityData);
+	void deleted(EntityDataChange entityData);
 }
 ```
 
-Using this simple listener, we get an `EntityData` object for each operation on the entity.
+Using this simple listener, we get an [`EntityDataChange`](https://github.com/ethlo/dachs/blob/master/dachs-common/src/main/java/com/ethlo/dachs/EntityDataChange.java) object for each operation on the entity.
 
 ```java
-public interface EntityData
+/**
+ * Represents a single entity change which consists of one or more <code>{@link PropertyChange}</code>s.
+ */
+public interface EntityDataChange
 {
-
 	/**
 	 * Returns the id of the entity
 	 * @return the id of the entity
@@ -64,7 +77,7 @@ public interface EntityData
 	 * Get all propertyChanges
 	 * @return A list of all property changes for this entity
 	 */
-	Collection<PropertyChange<?>> getPropertyChanges();
+	List<PropertyChange<?>> getPropertyChanges();
 
 	/**
 	 * Get a {@link PropertyChange} for the given propertyName of this entity
@@ -72,9 +85,10 @@ public interface EntityData
 	 * @return The {@link PropertyChange} for the given propertyName
 	 */
 	Optional<PropertyChange<?>> getPropertyChange(String propertyName);
+}
 ```
 
-Each `EntityData` object holds a collection of `PropertyChanges` that is the individual properties that has changed.
+Each `EntityDataChange` object holds a collection of [`PropertyChange`s](https://github.com/ethlo/dachs/blob/master/dachs-common/src/main/java/com/ethlo/dachs/PropertyChange.java) that is the individual properties that has changed.
 
 ```java
 public class PropertyChange<T>
@@ -100,7 +114,6 @@ public class PropertyChange<T>
 	}
 }
 ```
-
 ####Example output
 
 Given a simple Person object:
