@@ -24,4 +24,6 @@ public interface EntityDataChangeSet
 	 * @return a list of all entities deleted
 	 */
 	List<EntityDataChange> getDeleted();
+	
+	boolean isEmpty();
 }

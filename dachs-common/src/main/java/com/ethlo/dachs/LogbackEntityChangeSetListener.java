@@ -13,6 +13,9 @@ public class LogbackEntityChangeSetListener extends EntityChangeSetAdapter
 	@Override
 	public void postDataChanged(EntityDataChangeSet changeset)
 	{
-		logger.info("{}", changeset);
+		if (! changeset.isEmpty())
+		{
+			logger.info("{}", changeset);
+		}
 	}
 }
