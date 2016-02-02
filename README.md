@@ -33,15 +33,34 @@ All the different persistence frameworks have their different APIs for detecting
 ### API
 The goal is to have a simple, but powerful API to get notifications of all changes to entities, that is `created`, `updated` and `deleted`.
 
-Source: [EntityChangeListener](https://github.com/ethlo/dachs/blob/master/dachs-common/src/main/java/com/ethlo/dachs/EntityChangeListener.java)
+##### Transactional listener
+
+This listener will buffer all events until the transaction is about to commit. `preDataChanged` is called just before the transaction is committed. Any exception here will abort the transaction. `postDataChanged` is called just after the transaction is committed. 
+
 ```java
-/**
- * Basic interface for listening for entity changes as they are reported by the persistence framework. 
- * Use {@link EntityChangeSetListener} if you need to listen for events as they are committed.
- * 
- * @see EntityChangeSetListener
- * @see EntityChangeListenerAdapter
- */
+public interface EntityChangeSetListener
+{
+	void preDataChanged(EntityDataChangeSet changeset);
+	void postDataChanged(EntityDataChangeSet changeset);
+	void begin();
+}
+```
+
+Both methods gives you an [`EntityDataChangeSet`](https://github.com/ethlo/dachs/blob/master/dachs-common/src/main/java/com/ethlo/dachs/EntityDataChangeSet.java) whichs holds all operations performed inside the transaction.
+```java
+public interface EntityDataChangeSet
+{
+	List<EntityDataChange> getCreated();
+	List<EntityDataChange> getUpdated();
+	List<EntityDataChange> getDeleted();
+	boolean isEmpty();
+}
+```
+
+##### Non-transactional listener
+
+ [EntityChangeListener](https://github.com/ethlo/dachs/blob/master/dachs-common/src/main/java/com/ethlo/dachs/EntityChangeListener.java)
+```java
 public interface EntityChangeListener
 {
 	void preCreate(EntityDataChange entityData);
@@ -55,35 +74,13 @@ public interface EntityChangeListener
 
 Using this simple listener, we get an [`EntityDataChange`](https://github.com/ethlo/dachs/blob/master/dachs-common/src/main/java/com/ethlo/dachs/EntityDataChange.java) object for each operation on the entity.
 
+##### Common for both trasactional and non-transactional
 ```java
-/**
- * Represents a single entity change which consists of one or more <code>{@link PropertyChange}</code>s.
- */
 public interface EntityDataChange
 {
-	/**
-	 * Returns the id of the entity
-	 * @return the id of the entity
-	 */
 	Serializable getId();
-
-	/**
-	 * Returns the entity
-	 * @return The entity
-	 */
 	Object getEntity();
-
-	/**
-	 * Get all propertyChanges
-	 * @return A list of all property changes for this entity
-	 */
 	List<PropertyChange<?>> getPropertyChanges();
-
-	/**
-	 * Get a {@link PropertyChange} for the given propertyName of this entity
-	 * @param propertyName The name of the entity property
-	 * @return The {@link PropertyChange} for the given propertyName
-	 */
 	Optional<PropertyChange<?>> getPropertyChange(String propertyName);
 }
 ```
@@ -91,27 +88,12 @@ public interface EntityDataChange
 Each `EntityDataChange` object holds a collection of [`PropertyChange`s](https://github.com/ethlo/dachs/blob/master/dachs-common/src/main/java/com/ethlo/dachs/PropertyChange.java) that is the individual properties that has changed.
 
 ```java
-public class PropertyChange<T>
+public interface PropertyChange<T>
 {
-	public String getPropertyName()
-	{
-		return propertyName;
-	}
-
-	public Class<T> getEntityType()
-	{
-		return entityType;
-	}
-
-	public T getOldValue()
-	{
-		return oldValue;
-	}
-
-	public T getNewValue()
-	{
-		return newValue;
-	}
+	String getPropertyName();
+	Class<T> getEntityType();
+	T getOldValue();
+	T getNewValue();
 }
 ```
 ####Example output
@@ -150,17 +132,14 @@ EntityData
 		* age - 47 => null
 ```
 
-### Transaction boundaries (if applicable)
-Often we do not care for events before they are actually committed. For example, we do not want to store audit data if the transaction was rolled back. Dachs can buffer events until commit if in a transactional context.
-
 ### Limitations
 Dachs relies on the persistence framework in use to notify about operations and there might be limitations. 
 In general bulk delete will not trigger delete events (aka `DELETE FROM Entity`). 
 
 ### Performance
-Simple tests indicate that you can expect about 1-5% degradation in performance with Dachs enabled. YMMV.
+Simple tests indicate that you can expect about 1-5% degradation in performance. Note that Dachs is rarely the culprit, it is the framwork. YMMV!
 
-NOTE: Keep in mind that this test was performed on an in-memory database, performing 20 000 calls in about 2.5 seconds. Normally the real overhead would be negligible as the performance hit of your database would far outweigh this. 
+NOTE: Keep in mind that this test was performed on an in-memory database, performing 20 000 calls in about 2 seconds. Normally the real overhead would be negligible as the performance hit of your database would far outweigh this. 
 
 ### Release history
 TBA
