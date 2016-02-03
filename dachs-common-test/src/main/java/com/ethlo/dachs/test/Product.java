@@ -10,7 +10,7 @@ import javax.persistence.Id;
 @Entity
 public class Product
 {
-    @Id
+	@Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Integer id;
     
@@ -18,5 +18,15 @@ public class Product
 	private Currency currency;
 	private int priceInCents;
 	
+	protected Product()
+	{
+		
+	}
 	
+    public Product(String name, int priceInCents, Currency currency)
+    {
+		this.name = name;
+		this.priceInCents = priceInCents;
+		this.currency = currency;
+	}
 }

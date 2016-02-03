@@ -1,10 +1,12 @@
 package com.ethlo.dachs.test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -12,7 +14,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
@@ -37,8 +39,8 @@ public class Customer
     @EntityListenerIgnore
     private Integer version;
     
-    @ManyToOne(targetEntity=ProductOrder.class)
-    private List<ProductOrder> orders;
+    @OneToMany(targetEntity=ProductOrder.class, cascade=CascadeType.ALL)
+    private List<ProductOrder> orders = new ArrayList<>();
     
     protected Customer() {}
 
@@ -83,6 +85,12 @@ public class Customer
 	public Long getId()
 	{
 		return this.id;
+	}
+
+	public void addOrder(ProductOrder order)
+	{
+		this.orders.add(order);
+		order.setCustomer(this);
 	}
 }
 

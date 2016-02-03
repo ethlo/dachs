@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-import javax.persistence.Entity;
 import javax.persistence.PersistenceUnitUtil;
 
 import org.eclipse.persistence.descriptors.DescriptorEvent;
@@ -92,14 +91,7 @@ public class EclipseLinkAuditingLoggerHandler implements EntityEventListener<Des
 				continue;
 			}
 			
-			if (Iterable.class.isAssignableFrom(attrType))
-			{
-				entityUtil.extractListDiff(propChanges, Iterable.class, attrName, newValue, oldValue);
-			}
-			else 
-			{
-				entityUtil.extractSingle(attrName, attrType, oldValue, newValue, propChanges);
-			}
+			entityUtil.extractSingle(attrName, attrType, oldValue, newValue, propChanges);
 		}
 		return propChanges;
 	}
@@ -152,10 +144,6 @@ public class EclipseLinkAuditingLoggerHandler implements EntityEventListener<Des
 
 	private Serializable getObjectId(Object obj) 
 	{
-		if (obj == null || obj.getClass().getAnnotation(Entity.class) == null)
-		{
-			return null;
-		}
 		final Object entityId = persistenceUnitUtil.getIdentifier(obj);
 		return (Serializable) entityId;
 	}

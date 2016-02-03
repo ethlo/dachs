@@ -1,7 +1,9 @@
 package com.ethlo.dachs.test;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -18,16 +20,25 @@ public class ProductOrder
 {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
-    @Column(name="id")
 	private Integer id;
     
-    @OneToOne(optional=false)
+    @OneToOne
     @JoinColumn(name="customer_id")
     private Customer customer;
     
     private String notes;
     
-    @OneToMany(targetEntity=OrderLine.class)
+    @OneToMany(targetEntity=OrderLine.class, cascade=CascadeType.ALL)
     @JoinColumn
-    private List<OrderLine> lines;
+    private List<OrderLine> lines = new ArrayList<>();
+
+	public void addLine(OrderLine orderLine)
+	{
+		this.lines.add(orderLine);
+	}
+
+	public void setCustomer(Customer customer)
+	{
+		this.customer = customer;
+	}
 }

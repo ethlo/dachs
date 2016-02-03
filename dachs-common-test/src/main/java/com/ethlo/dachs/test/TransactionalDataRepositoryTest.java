@@ -2,25 +2,21 @@ package com.ethlo.dachs.test;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Currency;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -29,27 +25,24 @@ import com.ethlo.dachs.CollectingEntityChangeSetListener;
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.PropertyChange;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@Sql(value="classpath:init.sql", executionPhase=ExecutionPhase.BEFORE_TEST_METHOD)
-public class TransactionalDataRepositoryTest
+public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 {
-	@PersistenceContext
-	private EntityManager em;
-	
 	@Autowired
-	private PlatformTransactionManager txnManager;
+	protected CollectingEntityChangeSetListener listener;
 	
-	@Autowired
-	private CustomerRepository repository;
+	@Before
+	public void clear()
+	{
+		listener.clear();
+	}
 	
-	@Autowired
-	private CollectingEntityChangeSetListener listener;
-
 	@Test
 	@DirtiesContext
 	public void testCreate()
 	{
 		final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
+
+		final ProductOrder order = new ProductOrder();
 		
 		final AtomicLong firstId = new AtomicLong();
 		txTpl.execute(new TransactionCallbackWithoutResult()
@@ -58,7 +51,12 @@ public class TransactionalDataRepositoryTest
 			protected void doInTransactionWithoutResult(TransactionStatus status)
 			{
 				// Create
-				final Customer first = repository.save(new Customer("Jack", "Bauer"));
+				final Customer c = new Customer("Jack", "Bauer");
+				final Product p = new Product("C4", 1_000, Currency.getInstance("USD"));
+				order.addLine(new OrderLine().withProduct(p));
+				c.addOrder(order);
+				
+				final Customer first = repository.save(c);
 				em.flush();
 				firstId.set(first.getId());
 				
@@ -68,16 +66,17 @@ public class TransactionalDataRepositoryTest
 		});
 		
 		final List<EntityDataChange> created = listener.getPostDataChangeSet().getCreated();
-		Assert.assertEquals(3, created.size());
-		final EntityDataChange created1 = getById(created, firstId.get());
+		Assert.assertEquals(6, created.size());
+		final EntityDataChange created1 = getById(created, Customer.class, firstId.get());
 		assertThat(created1.getId()).isEqualTo(firstId.get());
 		assertThat(created1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
 		final List<PropertyChange<?>> createChanges1 = created1.getPropertyChanges();
-		assertThat(createChanges1.size()).isEqualTo(4);
+		assertThat(createChanges1.size()).isEqualTo(5);
 		assertMatch(createChanges1.get(0), "firstName", String.class, null, "Jack");
 		assertMatch(createChanges1.get(1), "id", Long.class, null, firstId.get());
 		assertMatch(createChanges1.get(2), "lastName", String.class, null, "Bauer");
-		assertMatch(createChanges1.get(3), "tags", Set.class, null, new HashSet<>());
+		assertMatch(createChanges1.get(3), "orders", Collection.class, null, new ArrayList<>(Arrays.asList(order)));
+		assertMatch(createChanges1.get(4), "tags", Set.class, null, new HashSet<>());
 		
 		final AtomicLong joeId = new AtomicLong();
 		txTpl.execute(new TransactionCallbackWithoutResult()
@@ -97,15 +96,16 @@ public class TransactionalDataRepositoryTest
 		final List<EntityDataChange> createdM = listener.getPostDataChangeSet().getCreated();
 		Assert.assertEquals(2, createdM.size());
 		
-		final EntityDataChange createdM1 = getById(createdM, joeId.get());
+		final EntityDataChange createdM1 = getById(createdM, Customer.class, joeId.get());
 		assertThat(createdM1.getId()).isEqualTo(joeId.get());
 		assertThat(createdM1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
 		final List<PropertyChange<?>> createChangesM1 = createdM1.getPropertyChanges();
-		assertThat(createChangesM1.size()).isEqualTo(4);
+		assertThat(createChangesM1.size()).isEqualTo(5);
 		assertMatch(createChangesM1.get(0), "firstName", String.class, null, "Joe");
 		assertMatch(createChangesM1.get(1), "id", Long.class, null, 5L);
 		assertMatch(createChangesM1.get(2), "lastName", String.class, null, "Cocker");
-		assertMatch(createChangesM1.get(3), "tags", Set.class, null, new HashSet<>());
+		assertMatch(createChanges1.get(3), "orders", Collection.class, null, new ArrayList<>(Arrays.asList(order)));
+		assertMatch(createChanges1.get(4), "tags", Set.class, null, new HashSet<>());
 	}
 	
 	@Test
@@ -143,7 +143,7 @@ public class TransactionalDataRepositoryTest
 		final List<EntityDataChange> updated = listener.getPostDataChangeSet().getUpdated();
 		Assert.assertEquals(1, updated.size());
 		
-		final EntityDataChange updated1 = getById(updated, 1L);
+		final EntityDataChange updated1 = getById(updated, Customer.class, 1L);
 		assertThat(updated1.getId()).isEqualTo(1L);
 		assertThat(updated1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
 		final List<PropertyChange<?>> updateChanges1 = updated1.getPropertyChanges();
@@ -170,36 +170,19 @@ public class TransactionalDataRepositoryTest
 		final List<EntityDataChange> deleted = listener.getPostDataChangeSet().getDeleted();
 		Assert.assertEquals(1, deleted.size());
 		
-		final EntityDataChange deleted1 = getById(deleted, 1L);
+		final EntityDataChange deleted1 = getById(deleted, Customer.class, 1L);
 		assertThat(deleted1.getId()).isEqualTo(1L);
 		assertThat(deleted1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
 		final List<PropertyChange<?>> deleteChanges1 = deleted1.getPropertyChanges();
-		assertThat(deleteChanges1.size()).isEqualTo(4);
+		assertThat(deleteChanges1.size()).isEqualTo(5);
 		assertMatch(deleteChanges1.get(0), "firstName", String.class, "Hugh", null);
 		assertMatch(deleteChanges1.get(1), "id", Long.class, 1L, null);
 		assertMatch(deleteChanges1.get(2), "lastName", String.class, "Jackman", null);
-		assertMatch(deleteChanges1.get(3), "tags", Set.class, new LinkedHashSet<>(), null);
+		assertMatch(deleteChanges1.get(3), "orders", Collection.class, new ArrayList<>(), null);
+		assertMatch(deleteChanges1.get(4), "tags", Set.class, new LinkedHashSet<>(), null);
 	}
 
-	private EntityDataChange getById(List<EntityDataChange> changes, long id)
-	{
-		for (EntityDataChange e : changes)
-		{
-			if (Objects.equals(e.getId(), id))
-			{
-				return e;
-			}
-		}
-		throw new IllegalArgumentException("Could not find change for entity id " + id);
-	}
-
-	private void assertMatch(@SuppressWarnings("rawtypes") PropertyChange change, String propName, Class<?> propType, Object oldValue, Object newValue)
-	{
-		assertThat(change.getPropertyName()).isEqualTo(propName);
-		assertThat(change.getPropertyType().getCanonicalName()).isEqualTo(propType.getCanonicalName());
-		assertThat(change.getOldValue()).isEqualTo(oldValue);
-		assertThat(change.getNewValue()).isEqualTo(newValue);
-	}
+	
 	
 	@Test
 	public void performanceTest()

@@ -1,5 +1,6 @@
 package com.ethlo.dachs.test;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -15,7 +16,7 @@ public class OrderLine
     @GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Integer id;
     
-    @OneToOne
+    @OneToOne(cascade=CascadeType.ALL)
     @JoinColumn(name="product_id")
 	private Product product;
 	
@@ -24,5 +25,17 @@ public class OrderLine
 	private ProductOrder order;
 
 	private int count;
+	
 	private int amount;
+	
+	public OrderLine withProduct(Product product)
+	{
+		this.product = product;
+		return this;
+	}
+	
+	public Integer getId()
+	{
+		return this.id;
+	}
 }

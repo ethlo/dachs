@@ -36,4 +36,9 @@ public class CollectingEntityChangeSetListener implements EntityChangeSetListene
 	{
 		return postDataChangeSet != null ? postDataChangeSet : new MutableEntityDataChangeSet();
 	}
+
+	public void clear()
+	{
+		begin();
+	}
 }

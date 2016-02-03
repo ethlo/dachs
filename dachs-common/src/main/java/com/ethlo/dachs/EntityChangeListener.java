@@ -5,7 +5,7 @@ package com.ethlo.dachs;
  * Use {@link EntityChangeSetListener} if you need to listen for events as they are committed.
  * 
  * @see EntityChangeSetListener
- * @see EntityListenerAdapter
+ * @see EntityChangeListenerAdapter
  */
 public interface EntityChangeListener
 {
