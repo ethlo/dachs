@@ -19,7 +19,7 @@ All the different persistence frameworks have their different APIs for detecting
 <dependency>
   <groupId>com.ethlo.dachs</groupId>
   <artifactId>dachs-{impl}</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>${dachs.version}</version>
 </dependency>
 ```
 
@@ -137,9 +137,6 @@ Dachs relies on the persistence framework in use to notify about operations and 
 In general bulk delete will not trigger delete events (aka `DELETE FROM Entity`). 
 
 ### Performance
-Simple tests indicate that you can expect about 1-5% degradation in performance. Note that Dachs is rarely the culprit, it is the framwork. YMMV!
+Simple tests indicate that you can expect about 1-5% degradation in performance. YMMV.
 
 NOTE: Keep in mind that this test was performed on an in-memory database, performing 20 000 calls in about 2 seconds. Normally the real overhead would be negligible as the performance hit of your database would far outweigh this. 
-
-### Release history
-TBA
