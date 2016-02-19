@@ -15,6 +15,9 @@ For example Spring has already support for events, and from [Spring 4.2](https:/
 All the different persistence frameworks have their different APIs for detecting data changes. With Dachs you have one simple, unified API to deal with.
 
 ### Maven artifact
+
+URL: http://ethlo.com/maven/
+
 ```xml
 <dependency>
   <groupId>com.ethlo.dachs</groupId>
