@@ -77,7 +77,7 @@ public class EntityDataChangeImpl implements EntityDataChange
 	@Override
 	public String toString()
 	{
-		return "EntityData [id=" + id + ", entity=" + entity + ", properties=" + properties + "]";
+		return getClass().getSimpleName() + " [id=" + id + ", entity=" + entity + ", properties=" + properties + "]";
 	}
 
 	public void setId(Serializable id)

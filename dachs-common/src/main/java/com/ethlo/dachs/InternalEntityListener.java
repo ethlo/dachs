@@ -1,5 +1,8 @@
 package com.ethlo.dachs;
 
+import java.lang.reflect.Field;
+import java.util.function.Predicate;
+
 /**
  * Listener used for bridging events from the persistence framework implementation to Dachs
  */
@@ -16,4 +19,8 @@ public interface InternalEntityListener
 	void updated(EntityDataChange entityData);
 	
 	void deleted(EntityDataChange entityData);
+	
+	Predicate<Field> getFieldFilter();
+	
+	Predicate<Object> getEntityFilter();	
 }

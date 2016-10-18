@@ -3,6 +3,7 @@ package com.ethlo.dachs;
 import java.util.LinkedList;
 import java.util.List;
 
+@EntityListenerIgnore
 public class MutableEntityDataChangeSet implements EntityDataChangeSet
 {
 	private final List<EntityDataChange> created;

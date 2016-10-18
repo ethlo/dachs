@@ -1,23 +1,25 @@
 package com.ethlo.dachs.jpa;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import javax.persistence.EntityManagerFactory;
+import java.util.function.Predicate;
 
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.DefaultTransactionStatus;
+import org.springframework.util.StringUtils;
 
 import com.ethlo.dachs.EntityChangeListener;
 import com.ethlo.dachs.EntityChangeSetListener;
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.EntityDataChangeImpl;
+import com.ethlo.dachs.EntityListenerIgnore;
 import com.ethlo.dachs.InternalEntityListener;
 import com.ethlo.dachs.LazyIdExtractor;
 import com.ethlo.dachs.MutableEntityDataChangeSet;
@@ -28,10 +30,11 @@ import com.ethlo.dachs.MutableEntityDataChangeSet;
 public class JpaTransactionManagerInterceptor extends JpaTransactionManager implements InternalEntityListener
 {
 	private static final long serialVersionUID = -6562131067110759051L;
-	
+
 	private final Set<EntityChangeSetListener> entityChangeSetListeners;
 	private final Set<EntityChangeListener> entityChangeListeners;
-
+    private Predicate<Object> entityFilter = x -> true;
+    private Predicate<Field> fieldFilter = x -> true;
 	private LazyIdExtractor lazyIdExtractor;
 
 	private static final ThreadLocal<MutableEntityDataChangeSet> preCs = new ThreadLocal<MutableEntityDataChangeSet>()
@@ -52,23 +55,45 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 		}
 	};
 
-	public JpaTransactionManagerInterceptor(EntityManagerFactory emf, Collection<EntityChangeSetListener> setListeners, Collection<EntityChangeListener> listeners)
+	public JpaTransactionManagerInterceptor(Collection<EntityChangeSetListener> setListeners, Collection<EntityChangeListener> listeners)
 	{
 		this.entityChangeSetListeners = new LinkedHashSet<>(setListeners);
 		this.entityChangeListeners = new LinkedHashSet<>(listeners);
 	}
 
-	public JpaTransactionManagerInterceptor(EntityManagerFactory emf, EntityChangeSetListener... setListeners)
+	public JpaTransactionManagerInterceptor(EntityChangeSetListener... setListeners)
 	{
-		this(emf, Arrays.asList(setListeners), Collections.emptyList());
+		this(Arrays.asList(setListeners), Collections.emptyList());
 	}
 	
-	public JpaTransactionManagerInterceptor(EntityManagerFactory emf, EntityChangeListener... listeners)
+	public JpaTransactionManagerInterceptor(EntityChangeListener... listeners)
 	{
-		this(emf, Collections.emptyList(), Arrays.asList(listeners));
+		this(Collections.emptyList(), Arrays.asList(listeners));
 	}
+	
+	public Predicate<Object> getEntityFilter()
+    {
+        return entityFilter;
+    }
 
-	@Override
+    public JpaTransactionManagerInterceptor setEntityFilter(Predicate<Object> entityFilter)
+    {
+        this.entityFilter = entityFilter;
+        return this;
+    }
+
+    public Predicate<Field> getFieldFilter()
+    {
+        return fieldFilter;
+    }
+
+    public JpaTransactionManagerInterceptor setFieldFilter(Predicate<Field> fieldFilter)
+    {
+        this.fieldFilter = fieldFilter;
+        return this;
+    }
+
+    @Override
 	protected void doBegin(Object transaction, TransactionDefinition definition)
 	{
 		super.doBegin(transaction, definition);
@@ -82,13 +107,15 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	}
 
 	@Override
+	protected void prepareForCommit(DefaultTransactionStatus status)
+	{
+	    beforeCommit();
+    }
+	
+	@Override
 	protected void doCommit(DefaultTransactionStatus status)
 	{
-		beforeCommit();
-
-		// Perform commit
 		super.doCommit(status);
-		
 		afterCommit();
 	}
 
@@ -115,34 +142,43 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 
 	private void lazySetId(MutableEntityDataChangeSet cs)
 	{
-		if (this.lazyIdExtractor != null)
-		{
-			doSetId(cs.getCreated(), false);
-			//doSetId(cs.getUpdated(), false);
-			doSetId(cs.getDeleted(), true);
-		}
+		doSetId(cs.getCreated(), false);
+		//doSetId(cs.getUpdated(), false);
+		doSetId(cs.getDeleted(), true);
 	}
 
-	private void doSetId(List<EntityDataChange> list, boolean deleted)
+	private void doSetId(List<EntityDataChange> changeList, boolean deleted)
 	{
-		for (EntityDataChange created : list)
-		{
-			final EntityDataChangeImpl impl = (EntityDataChangeImpl) created;
-			final Serializable id = lazyIdExtractor.extractId(created.getEntity());
-			impl.setId(id);
-			final String propertyName = lazyIdExtractor.extractIdPropertyName(created.getEntity());
-			impl.prependIdPropertyChange(propertyName, id, deleted);
-		}
+        if (this.lazyIdExtractor != null)
+        {
+    		for (EntityDataChange change : changeList)
+    		{
+    		    final EntityDataChangeImpl impl = (EntityDataChangeImpl) change;
+    			final Serializable id = lazyIdExtractor.extractId(change.getEntity());
+    			impl.setId(id);
+    			final String propertyName = lazyIdExtractor.extractIdPropertyName(change.getEntity());
+    			if (propertyName != null)
+    			{
+    			    impl.prependIdPropertyChange(propertyName, id, deleted);
+    			}
+    		}
+    	}
 	}
-
-	public void setLazyIdExtractor(LazyIdExtractor lazyIdExtractor)
+	
+	public JpaTransactionManagerInterceptor setLazyIdExtractor(LazyIdExtractor lazyIdExtractor)
 	{
 		this.lazyIdExtractor = lazyIdExtractor;
+		return this;
 	}
 
 	@Override
 	public void preCreate(EntityDataChange entityData)
 	{
+	    if (isIgnored(entityData))
+	    {
+	        return;
+	    }
+	    
 		final MutableEntityDataChangeSet cs = preCs.get();
 		cs.getCreated().add(entityData);
 		
@@ -152,9 +188,19 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 		}
 	}
 
-	@Override
+	private boolean isIgnored(EntityDataChange entityData)
+    {
+	    return entityData.getEntity().getClass().getAnnotation(EntityListenerIgnore.class) != null || !entityFilter.test(entityData.getEntity());
+    }
+
+    @Override
 	public void preUpdate(EntityDataChange entityData)
 	{
+        if (isIgnored(entityData))
+        {
+            return;
+        }
+        
 		final MutableEntityDataChangeSet cs = preCs.get();
 		cs.getUpdated().add(entityData);
 		
@@ -168,6 +214,11 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	@Override
 	public void preDelete(EntityDataChange entityData)
 	{
+	    if (isIgnored(entityData))
+        {
+            return;
+        }
+	    
 		final MutableEntityDataChangeSet cs = preCs.get();
 		cs.getDeleted().add(entityData);
 		
@@ -181,6 +232,11 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	@Override
 	public void created(EntityDataChange entityData)
 	{
+	    if (isIgnored(entityData))
+        {
+            return;
+        }
+	    
 		final MutableEntityDataChangeSet cs = postCs.get();
 		cs.getCreated().add(entityData);
 		
@@ -194,6 +250,11 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	@Override
 	public void updated(EntityDataChange entityData)
 	{
+	    if (isIgnored(entityData))
+        {
+            return;
+        }
+	    
 		final MutableEntityDataChangeSet cs = postCs.get();
 		cs.getUpdated().add(entityData);
 		
@@ -206,6 +267,11 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	@Override
 	public void deleted(EntityDataChange entityData)
 	{
+	    if (isIgnored(entityData))
+        {
+            return;
+        }
+	    
 		final MutableEntityDataChangeSet cs = postCs.get();
 		cs.getDeleted().add(entityData);
 		

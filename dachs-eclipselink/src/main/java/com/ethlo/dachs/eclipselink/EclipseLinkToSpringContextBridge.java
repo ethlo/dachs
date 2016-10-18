@@ -5,9 +5,9 @@ import org.eclipse.persistence.descriptors.DescriptorEventAdapter;
 
 public class EclipseLinkToSpringContextBridge extends DescriptorEventAdapter
 {
-	private static EclipseLinkAuditingLoggerHandler handler;
+	private static EclipseLinkEntityEventListener handler;
 
-	public static void setEntityChangeListener(EclipseLinkAuditingLoggerHandler handler)
+	public static void setEntityChangeListener(EclipseLinkEntityEventListener handler)
 	{
 		EclipseLinkToSpringContextBridge.handler = handler;
 	}
