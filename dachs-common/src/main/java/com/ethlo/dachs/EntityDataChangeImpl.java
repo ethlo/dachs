@@ -3,11 +3,11 @@ package com.ethlo.dachs;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.TreeMap;
 
 public class EntityDataChangeImpl implements EntityDataChange
 {
@@ -19,7 +19,7 @@ public class EntityDataChangeImpl implements EntityDataChange
 	{
 		this.id = id;
 		this.entity = entity;
-		this.properties = new TreeMap<>();
+		this.properties = new LinkedHashMap<>();
 		for (PropertyChange<?> propertyChange : properties)
 		{
 			this.properties.put(propertyChange.getPropertyName(), propertyChange);
@@ -90,6 +90,4 @@ public class EntityDataChangeImpl implements EntityDataChange
 	{
 		this.properties.put(idPropertyName, new PropertyChange(idPropertyName, id.getClass(), deleted ? id : null, deleted ? null : id));
 	}
-	
-	
 }

@@ -2,7 +2,7 @@ package com.ethlo.dachs.test;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 
 import javax.persistence.EntityManager;
@@ -32,7 +32,7 @@ public class AbstractDataRepositoryTest
 	@Autowired
 	protected CustomerRepository repository;
 	
-	protected EntityDataChange getById(List<EntityDataChange> changes, Class<?> type, long id)
+	protected EntityDataChange getById(Collection<EntityDataChange> changes, Class<?> type, long id)
 	{
 		for (EntityDataChange e : changes)
 		{

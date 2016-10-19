@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -169,7 +168,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 		doSetId(cs.getDeleted(), true);
 	}
 
-	private void doSetId(List<EntityDataChange> changeList, boolean deleted)
+	private void doSetId(Collection<EntityDataChange> changeList, boolean deleted)
 	{
         if (this.lazyIdExtractor != null)
         {
@@ -212,7 +211,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 
 	private boolean isIgnored(EntityDataChange entityData)
     {
-	    return entityData.getEntity().getClass().getAnnotation(EntityListenerIgnore.class) != null || !entityFilter.test(entityData.getEntity());
+	    return entityData.getPropertyChanges().isEmpty() || entityData.getEntity().getClass().getAnnotation(EntityListenerIgnore.class) != null || !entityFilter.test(entityData.getEntity());
     }
 
     @Override
@@ -266,7 +265,6 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 		{
 			listener.created(entityData);
 		}
-
 	}
 
 	@Override
