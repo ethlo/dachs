@@ -66,7 +66,7 @@ public class HibernateCfg extends JpaBaseConfiguration
 	@Bean
 	public static JpaTransactionManagerInterceptor transactionManager(EntityManagerFactory emf, EntityChangeSetListener txnBoundListener, EntityChangeListener directListener)
 	{
-		final JpaTransactionManagerInterceptor txnManager = new JpaTransactionManagerInterceptor(Arrays.asList(txnBoundListener), Arrays.asList(directListener));
+		final JpaTransactionManagerInterceptor txnManager = new JpaTransactionManagerInterceptor(emf, Arrays.asList(txnBoundListener), Arrays.asList(directListener));
 		txnManager.setLazyIdExtractor(new HibernateLazyIdExtractor(emf));
 		return txnManager;
 	}

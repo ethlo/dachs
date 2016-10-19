@@ -10,10 +10,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import javax.persistence.EntityManagerFactory;
+
+import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.DefaultTransactionStatus;
-import org.springframework.util.StringUtils;
 
 import com.ethlo.dachs.EntityChangeListener;
 import com.ethlo.dachs.EntityChangeSetListener;
@@ -36,6 +38,8 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
     private Predicate<Object> entityFilter = x -> true;
     private Predicate<Field> fieldFilter = x -> true;
 	private LazyIdExtractor lazyIdExtractor;
+	private EntityManagerFactory emf;
+	private boolean flush = true;
 
 	private static final ThreadLocal<MutableEntityDataChangeSet> preCs = new ThreadLocal<MutableEntityDataChangeSet>()
 	{
@@ -55,21 +59,33 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 		}
 	};
 
-	public JpaTransactionManagerInterceptor(Collection<EntityChangeSetListener> setListeners, Collection<EntityChangeListener> listeners)
+	public JpaTransactionManagerInterceptor(EntityManagerFactory emf, Collection<EntityChangeSetListener> setListeners, Collection<EntityChangeListener> listeners)
 	{
+	    this.emf = emf;
 		this.entityChangeSetListeners = new LinkedHashSet<>(setListeners);
 		this.entityChangeListeners = new LinkedHashSet<>(listeners);
 	}
 
-	public JpaTransactionManagerInterceptor(EntityChangeSetListener... setListeners)
+	public JpaTransactionManagerInterceptor(EntityManagerFactory emf, EntityChangeSetListener... setListeners)
 	{
-		this(Arrays.asList(setListeners), Collections.emptyList());
+		this(emf, Arrays.asList(setListeners), Collections.emptyList());
 	}
 	
-	public JpaTransactionManagerInterceptor(EntityChangeListener... listeners)
+	public JpaTransactionManagerInterceptor(EntityManagerFactory emf, EntityChangeListener... listeners)
 	{
-		this(Collections.emptyList(), Arrays.asList(listeners));
+		this(emf, Collections.emptyList(), Arrays.asList(listeners));
 	}
+	
+	public JpaTransactionManagerInterceptor setFlush(boolean flush)
+	{
+	    this.flush = flush;
+	    return this;
+	}
+	
+	public boolean getFlush()
+    {
+        return this.flush;
+    }
 	
 	public Predicate<Object> getEntityFilter()
     {
@@ -109,6 +125,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	@Override
 	protected void prepareForCommit(DefaultTransactionStatus status)
 	{
+	    
 	    beforeCommit();
     }
 	
@@ -121,6 +138,11 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 
 	private void beforeCommit()
 	{
+	    if (flush)
+	    {
+	        EntityManagerFactoryUtils.getTransactionalEntityManager(emf).flush();
+	    }
+	    
 		final MutableEntityDataChangeSet cs = preCs.get();
 		lazySetId(cs);
 		

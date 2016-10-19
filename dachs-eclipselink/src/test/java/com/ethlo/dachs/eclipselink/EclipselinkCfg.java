@@ -86,6 +86,6 @@ public class EclipselinkCfg extends JpaBaseConfiguration
 	@Bean
 	public static JpaTransactionManagerInterceptor transactionManager(EntityManagerFactory emf, EntityChangeSetListener txnListener, EntityChangeListener directListener)
 	{
-		return new JpaTransactionManagerInterceptor(Arrays.asList(txnListener), Arrays.asList(directListener));
+		return new JpaTransactionManagerInterceptor(emf, Arrays.asList(txnListener), Arrays.asList(directListener));
 	}
 }
