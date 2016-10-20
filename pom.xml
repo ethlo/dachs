@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.ethlo.dachs</groupId>
 	<artifactId>dachs</artifactId>
-	<version>0.5</version>
+	<version>0.6-SNAPSHOT</version>
 	<name>Dachs - Data Change Snitch</name>
 	<packaging>pom</packaging>
 	<parent>
