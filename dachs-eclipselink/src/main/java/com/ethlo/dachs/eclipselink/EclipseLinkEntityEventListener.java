@@ -98,7 +98,7 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
 			    continue;
 			}
 			
-			entityUtil.extractSingle(attrName, attrType, oldValue, newValue, propChanges);
+			entityUtil.extractSingle(attrName, attrType, entityUtil.getAuditValue(oldValue), entityUtil.getAuditValue(newValue), propChanges);
 		}
 		return propChanges;
 	}

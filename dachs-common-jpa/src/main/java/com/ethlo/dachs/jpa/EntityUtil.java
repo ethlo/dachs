@@ -66,51 +66,56 @@ public class EntityUtil
 	    if (fieldFilter.test(field))
 	    {
     		final String fieldName = field.getName();
-    		Object value = ReflectionUtils.getField(field, target);
-    		
-    		if (isEntity(value))
-    		{
-    		    value = persistenceUnitUtil.getIdentifier(value);
-    		}
-    		else if (value instanceof Collection)
-    		{
-    		    final Collection tmp = new LinkedList<>();
-    		    for (Object v : (Collection) value)
-    		    {
-    		        if (isEntity(v))
-    		        {
-    		            tmp.add(persistenceUnitUtil.getIdentifier(v));
-    		        }
-    		        else
-    		        {
-    		            tmp.add(v);
-    		        }
-    		    }
-    		    value = tmp;
-    		}
-    		else if (value instanceof Map)
-            {
-                final Map tmp = new LinkedHashMap<>();
-                Set<Entry> set = ((Map) value).entrySet();
-                for (Entry e : set)
-                {
-                    if (isEntity(e.getValue()))
-                    {
-                        tmp.put(e.getKey(), (persistenceUnitUtil.getIdentifier(e.getValue())));
-                    }
-                    else
-                    {
-                        tmp.put(e.getKey(), e.getValue());
-                    }
-                }
-                value = tmp;
-            }
-    		
+    		final Object value = getAuditValue(ReflectionUtils.getField(field, target));
     		propChanges.add(new PropertyChange(fieldName, field.getType(), deleted ? value : null, deleted ? null : value));
 	    }
 	}
 	
-	private boolean isEntity(Object value)
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Object getAuditValue(Object value)
+    {
+	    if (isEntity(value))
+        {
+            value = persistenceUnitUtil.getIdentifier(value);
+        }
+        else if (value instanceof Collection)
+        {
+            final Collection tmp = new LinkedList<>();
+            for (Object v : (Collection) value)
+            {
+                if (isEntity(v))
+                {
+                    tmp.add(persistenceUnitUtil.getIdentifier(v));
+                }
+                else
+                {
+                    tmp.add(v);
+                }
+            }
+            return tmp;
+        }
+        else if (value instanceof Map)
+        {
+            final Map tmp = new LinkedHashMap<>();
+            Set<Entry> set = ((Map) value).entrySet();
+            for (Entry e : set)
+            {
+                if (isEntity(e.getValue()))
+                {
+                    tmp.put(e.getKey(), (persistenceUnitUtil.getIdentifier(e.getValue())));
+                }
+                else
+                {
+                    tmp.put(e.getKey(), e.getValue());
+                }
+            }
+            return tmp;
+        }
+	    
+	    return value;
+    }
+
+    public boolean isEntity(Object value)
     {
 	    if (value != null)
 	    {
