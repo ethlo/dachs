@@ -164,24 +164,36 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	private void lazySetId(MutableEntityDataChangeSet cs)
 	{
 		doSetId(cs.getCreated(), false);
-		//doSetId(cs.getUpdated(), false);
+		removeDuplicates(cs.getCreated());
 		doSetId(cs.getDeleted(), true);
+		removeDuplicates(cs.getDeleted());
 	}
 
-	private void doSetId(Collection<EntityDataChange> changeList, boolean deleted)
+	private void removeDuplicates(Collection<EntityDataChange> coll)
+    {
+	    // We need this to be done separately as we mutate the ID property
+        final Collection<EntityDataChange> tmp = new LinkedHashSet<>(coll);
+        coll.clear();
+        coll.addAll(tmp);
+    }
+
+    private void doSetId(Collection<EntityDataChange> changeList, boolean deleted)
 	{
         if (this.lazyIdExtractor != null)
         {
     		for (EntityDataChange change : changeList)
     		{
-    		    final EntityDataChangeImpl impl = (EntityDataChangeImpl) change;
-    			final Serializable id = lazyIdExtractor.extractId(change.getEntity());
-    			impl.setId(id);
-    			final String propertyName = lazyIdExtractor.extractIdPropertyName(change.getEntity());
-    			if (propertyName != null)
-    			{
-    			    impl.prependIdPropertyChange(propertyName, id, deleted);
-    			}
+    		    if (change.getId() == null)
+    		    {
+        		    final EntityDataChangeImpl impl = (EntityDataChangeImpl) change;
+        			final Serializable id = lazyIdExtractor.extractId(change.getEntity());
+        			impl.setId(id);
+        			final String propertyName = lazyIdExtractor.extractIdPropertyName(change.getEntity());
+        			if (propertyName != null)
+        			{
+        			    impl.prependIdPropertyChange(propertyName, id, deleted);
+        			}
+    		    }
     		}
     	}
 	}

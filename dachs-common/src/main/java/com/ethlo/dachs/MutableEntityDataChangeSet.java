@@ -1,36 +1,37 @@
 package com.ethlo.dachs;
 
-import java.util.LinkedHashSet;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Set;
 
 @EntityListenerIgnore
 public class MutableEntityDataChangeSet implements EntityDataChangeSet
 {
-	private final Set<EntityDataChange> created;
-	private final Set<EntityDataChange> updated;
-	private final Set<EntityDataChange> deleted;
+	private final Collection<EntityDataChange> created;
+	private final Collection<EntityDataChange> updated;
+	private final Collection<EntityDataChange> deleted;
 	
 	public MutableEntityDataChangeSet()
 	{
-		this.created = new LinkedHashSet<>();
-		this.updated = new LinkedHashSet<>();
-		this.deleted = new LinkedHashSet<>();
+		this.created = new LinkedList<>();
+		this.updated = new LinkedList<>();
+		this.deleted = new LinkedList<>();
 	}
 
 	@Override
-	public Set<EntityDataChange> getCreated()
+	public Collection<EntityDataChange> getCreated()
 	{
 		return created;
 	}
 
 	@Override
-	public Set<EntityDataChange> getUpdated()
+	public Collection<EntityDataChange> getUpdated()
 	{
 		return updated;
 	}
 
 	@Override
-	public Set<EntityDataChange> getDeleted()
+	public Collection<EntityDataChange> getDeleted()
 	{
 		return deleted;
 	}

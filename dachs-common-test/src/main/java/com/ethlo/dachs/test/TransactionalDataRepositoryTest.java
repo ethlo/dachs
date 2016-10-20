@@ -65,7 +65,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 			}
 		});
 		
-		final Set<EntityDataChange> created = listener.getPostDataChangeSet().getCreated();
+		final Collection<EntityDataChange> created = listener.getPostDataChangeSet().getCreated();
 		Assert.assertEquals(6, created.size());
 		final EntityDataChange created1 = getById(created, Customer.class, firstId.get());
 		assertThat(created1.getId()).isEqualTo(firstId.get());
@@ -93,7 +93,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 			}
 		});
 		
-		final Set<EntityDataChange> createdM = listener.getPostDataChangeSet().getCreated();
+		final Collection<EntityDataChange> createdM = listener.getPostDataChangeSet().getCreated();
 		Assert.assertEquals(2, createdM.size());
 		
 		final EntityDataChange createdM1 = getById(createdM, Customer.class, joeId.get());
@@ -140,7 +140,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 			}
 		});
 		
-		final Set<EntityDataChange> updated = listener.getPostDataChangeSet().getUpdated();
+		final Collection<EntityDataChange> updated = listener.getPostDataChangeSet().getUpdated();
 		Assert.assertEquals(1, updated.size());
 		
 		final EntityDataChange updated1 = getById(updated, Customer.class, 1L);
@@ -167,7 +167,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 			}
 		});
 		
-		final Set<EntityDataChange> deleted = listener.getPostDataChangeSet().getDeleted();
+		final Collection<EntityDataChange> deleted = listener.getPostDataChangeSet().getDeleted();
 		Assert.assertEquals(1, deleted.size());
 		
 		final EntityDataChange deleted1 = getById(deleted, Customer.class, 1L);
