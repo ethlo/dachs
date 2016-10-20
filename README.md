@@ -2,11 +2,11 @@
 
 ### Goal
 
-To have a _unified_ API to listen for core data changes that is stable, efficient and non-obtrusive.
+To have a _unified_ entity change-listener across different persistence APIs and implementations.
 
 ### Rationale
 
-In almost all back-end systems there is the need to notify or update additional data whenever core data changes. It can be sending a notification event, invalidating cache entries, audit logging or updating a search engine to mention a few. 
+In almost all back-end systems there is the need to notify or update additional data whenever core data changes. It can be sending a notification event, invalidating cache entries, audit logging or updating a search index to mention a few. 
 
 For example Spring has already support for events, and from [Spring 4.2](https://spring.io/blog/2015/02/11/better-application-events-in-spring-framework-4-2#transaction-bound-events) it also has support for send-at-end-of-transaction-events. Further Spring JPA supports [auditing](http://docs.spring.io/spring-data/jpa/docs/1.5.0.RELEASE/reference/html/jpa.repositories.html#jpa.auditing), however it does not support fetching the actual data, just _who_ changed it and _when_. There is no recollection of _what_ was changed.
 
@@ -94,7 +94,7 @@ Each `EntityDataChange` object holds a collection of [`PropertyChange`s](https:/
 public interface PropertyChange<T>
 {
 	String getPropertyName();
-	Class<T> getEntityType();
+	Class<T> getPropertyType();
 	T getOldValue();
 	T getNewValue();
 }
@@ -138,8 +138,3 @@ EntityData
 ### Limitations
 Dachs relies on the persistence framework in use to notify about operations and there might be limitations. 
 In general bulk delete will not trigger delete events (aka `DELETE FROM Entity`). 
-
-### Performance
-Simple tests indicate that you can expect about 1-5% degradation in performance. YMMV.
-
-NOTE: Keep in mind that this test was performed on an in-memory database, performing 20 000 calls in about 2 seconds. Normally the real overhead would be negligible as the performance hit of your database would far outweigh this. 
