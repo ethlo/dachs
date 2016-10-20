@@ -40,16 +40,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	private EntityManagerFactory emf;
 	private boolean flush = true;
 
-	private static final ThreadLocal<MutableEntityDataChangeSet> preCs = new ThreadLocal<MutableEntityDataChangeSet>()
-	{
-		@Override
-		protected MutableEntityDataChangeSet initialValue()
-		{
-			return new MutableEntityDataChangeSet();
-		}
-	};
-	
-	private static final ThreadLocal<MutableEntityDataChangeSet> postCs = new ThreadLocal<MutableEntityDataChangeSet>()
+	private static final ThreadLocal<MutableEntityDataChangeSet> changeset = new ThreadLocal<MutableEntityDataChangeSet>()
 	{
 		@Override
 		protected MutableEntityDataChangeSet initialValue()
@@ -112,8 +103,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	protected void doBegin(Object transaction, TransactionDefinition definition)
 	{
 		super.doBegin(transaction, definition);
-		preCs.remove();
-		postCs.remove();
+		changeset.remove();
 		
 		for (EntityChangeSetListener listener : entityChangeSetListeners)
 		{
@@ -124,7 +114,6 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	@Override
 	protected void prepareForCommit(DefaultTransactionStatus status)
 	{
-	    
 	    beforeCommit();
     }
 	
@@ -142,18 +131,24 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	        EntityManagerFactoryUtils.getTransactionalEntityManager(emf).flush();
 	    }
 	    
-		final MutableEntityDataChangeSet cs = preCs.get();
-		lazySetId(cs);
+		final MutableEntityDataChangeSet cs = changeset.get();
 		
-		for (EntityChangeSetListener listener : entityChangeSetListeners)
+		if (! cs.isEmpty())
 		{
-			listener.preDataChanged(cs);
+    		lazySetId(cs);
+    		
+    		for (EntityChangeSetListener listener : entityChangeSetListeners)
+    		{
+    		    listener.preDataChanged(cs);
+    		}
 		}
+		
+		changeset.remove();
 	}
 
 	private void afterCommit()
 	{
-		final MutableEntityDataChangeSet cs = postCs.get();
+		final MutableEntityDataChangeSet cs = changeset.get();
 		lazySetId(cs);
 		for (EntityChangeSetListener listener : entityChangeSetListeners)
 		{
@@ -163,18 +158,27 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 
 	private void lazySetId(MutableEntityDataChangeSet cs)
 	{
-		doSetId(cs.getCreated(), false);
-		removeDuplicates(cs.getCreated());
-		doSetId(cs.getDeleted(), true);
-		removeDuplicates(cs.getDeleted());
+	    if (! cs.isEmpty())
+	    {
+    		doSetId(cs.getCreated(), false);
+    		removeDuplicates(cs.getCreated());
+    		
+    		doSetId(cs.getDeleted(), true);
+    		removeDuplicates(cs.getDeleted());
+    		
+    		removeDuplicates(cs.getUpdated());
+	    }
 	}
 
 	private void removeDuplicates(Collection<EntityDataChange> coll)
     {
-	    // We need this to be done separately as we mutate the ID property
-        final Collection<EntityDataChange> tmp = new LinkedHashSet<>(coll);
-        coll.clear();
-        coll.addAll(tmp);
+	    if (coll.size() > 1)
+	    {
+    	    // We need this to be done separately as we mutate the ID property
+            final Collection<EntityDataChange> tmp = new LinkedHashSet<>(coll);
+            coll.clear();
+            coll.addAll(tmp);
+	    }
     }
 
     private void doSetId(Collection<EntityDataChange> changeList, boolean deleted)
@@ -204,62 +208,47 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 		return this;
 	}
 
+	private boolean isIgnored(EntityDataChange entityData)
+    {
+        return entityData.getPropertyChanges().isEmpty() 
+            || entityData.getEntity().getClass().getAnnotation(EntityListenerIgnore.class) != null
+            || !entityFilter.test(entityData.getEntity());
+    }
+	
 	@Override
 	public void preCreate(EntityDataChange entityData)
 	{
-	    if (isIgnored(entityData))
-	    {
-	        return;
-	    }
-	    
-		final MutableEntityDataChangeSet cs = preCs.get();
-		cs.getCreated().add(entityData);
-		
-		for (EntityChangeListener listener : this.entityChangeListeners)
-		{
-			listener.preCreate(entityData);
-		}
+        if (! isIgnored(entityData))
+        {
+            for (EntityChangeListener listener : this.entityChangeListeners)
+            {
+                listener.preCreate(entityData);
+            }
+        }
 	}
-
-	private boolean isIgnored(EntityDataChange entityData)
-    {
-	    return entityData.getPropertyChanges().isEmpty() || entityData.getEntity().getClass().getAnnotation(EntityListenerIgnore.class) != null || !entityFilter.test(entityData.getEntity());
-    }
 
     @Override
 	public void preUpdate(EntityDataChange entityData)
 	{
-        if (isIgnored(entityData))
+        if (! isIgnored(entityData))
         {
-            return;
+            for (EntityChangeListener listener : this.entityChangeListeners)
+            {
+                listener.preUpdate(entityData);
+            }
         }
-        
-		final MutableEntityDataChangeSet cs = preCs.get();
-		cs.getUpdated().add(entityData);
-		
-		for (EntityChangeListener listener : this.entityChangeListeners)
-		{
-			listener.preUpdate(entityData);
-		}
-
 	}
 
 	@Override
 	public void preDelete(EntityDataChange entityData)
 	{
-	    if (isIgnored(entityData))
+	    if (! isIgnored(entityData))
         {
-            return;
+            for (EntityChangeListener listener : this.entityChangeListeners)
+            {
+                listener.preDelete(entityData);
+            }
         }
-	    
-		final MutableEntityDataChangeSet cs = preCs.get();
-		cs.getDeleted().add(entityData);
-		
-		for (EntityChangeListener listener : this.entityChangeListeners)
-		{
-			listener.preDelete(entityData);
-		}
-
 	}
 
 	@Override
@@ -270,7 +259,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
             return;
         }
 	    
-		final MutableEntityDataChangeSet cs = postCs.get();
+		final MutableEntityDataChangeSet cs = changeset.get();
 		cs.getCreated().add(entityData);
 		
 		for (EntityChangeListener listener : this.entityChangeListeners)
@@ -287,7 +276,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
             return;
         }
 	    
-		final MutableEntityDataChangeSet cs = postCs.get();
+		final MutableEntityDataChangeSet cs = changeset.get();
 		cs.getUpdated().add(entityData);
 		
 		for (EntityChangeListener listener : this.entityChangeListeners)
@@ -304,7 +293,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
             return;
         }
 	    
-		final MutableEntityDataChangeSet cs = postCs.get();
+		final MutableEntityDataChangeSet cs = changeset.get();
 		cs.getDeleted().add(entityData);
 		
 		for (EntityChangeListener listener : this.entityChangeListeners)
