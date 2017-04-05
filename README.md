@@ -98,7 +98,7 @@ public interface PropertyChange<T>
 	T getNewValue();
 }
 ```
-####Example output
+#### Example output
 
 Given a simple Person object:
 
@@ -110,7 +110,7 @@ public class Person()
 }
 ```
 
-#####Created
+##### Created
 ```
 EntityData
 	propertyChanges:
@@ -118,7 +118,7 @@ EntityData
 		* age - null => 34
 ```
 
-#####Updated
+##### Updated
 ```
 EntityData
 	propertyChanges:
@@ -126,7 +126,7 @@ EntityData
 		* age - 34 => 47
 ```
 
-#####Deleted
+##### Deleted
 ```
 EntityData
 	propertyChanges:
