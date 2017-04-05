@@ -5,7 +5,10 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -24,6 +27,7 @@ import com.ethlo.dachs.EntityListenerIgnore;
 import com.ethlo.dachs.InternalEntityListener;
 import com.ethlo.dachs.LazyIdExtractor;
 import com.ethlo.dachs.MutableEntityDataChangeSet;
+import com.ethlo.dachs.PropertyChange;
 
 /**
  * Caches entity changes until the transaction commits, or discards them in case of a roll-back.
@@ -40,7 +44,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	private EntityManagerFactory emf;
 	private boolean flush = true;
 
-	private static final ThreadLocal<MutableEntityDataChangeSet> changeset = new ThreadLocal<MutableEntityDataChangeSet>()
+	private static final ThreadLocal<MutableEntityDataChangeSet> preChangeset = new ThreadLocal<MutableEntityDataChangeSet>()
 	{
 		@Override
 		protected MutableEntityDataChangeSet initialValue()
@@ -48,6 +52,15 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 			return new MutableEntityDataChangeSet();
 		}
 	};
+	
+	private static final ThreadLocal<MutableEntityDataChangeSet> postChangeset = new ThreadLocal<MutableEntityDataChangeSet>()
+    {
+        @Override
+        protected MutableEntityDataChangeSet initialValue()
+        {
+            return new MutableEntityDataChangeSet();
+        }
+    };
 
 	public JpaTransactionManagerInterceptor(EntityManagerFactory emf, Collection<EntityChangeSetListener> setListeners, Collection<EntityChangeListener> listeners)
 	{
@@ -103,7 +116,8 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	protected void doBegin(Object transaction, TransactionDefinition definition)
 	{
 		super.doBegin(transaction, definition);
-		changeset.remove();
+		preChangeset.remove();
+		postChangeset.remove();
 		
 		for (EntityChangeSetListener listener : entityChangeSetListeners)
 		{
@@ -131,7 +145,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
 	        EntityManagerFactoryUtils.getTransactionalEntityManager(emf).flush();
 	    }
 	    
-		final MutableEntityDataChangeSet cs = changeset.get();
+		final MutableEntityDataChangeSet cs = preChangeset.get();
 		
 		if (! cs.isEmpty())
 		{
@@ -143,20 +157,24 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
     		}
 		}
 		
-		changeset.remove();
+		preChangeset.remove();
 	}
 
 	private void afterCommit()
 	{
-		final MutableEntityDataChangeSet cs = changeset.get();
-		lazySetId(cs);
-		for (EntityChangeSetListener listener : entityChangeSetListeners)
+		final MutableEntityDataChangeSet cs = postChangeset.get();
+		if (! cs.isEmpty())
 		{
-			listener.postDataChanged(cs);
+    		lazySetId(cs);
+    		for (EntityChangeSetListener listener : entityChangeSetListeners)
+    		{
+    			listener.postDataChanged(cs);
+    		}
 		}
+		postChangeset.remove();
 	}
 
-	private void lazySetId(MutableEntityDataChangeSet cs)
+    private void lazySetId(MutableEntityDataChangeSet cs)
 	{
 	    if (! cs.isEmpty())
 	    {
@@ -187,22 +205,35 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
         {
     		for (EntityDataChange change : changeList)
     		{
-    		    if (change.getId() == null)
-    		    {
-        		    final EntityDataChangeImpl impl = (EntityDataChangeImpl) change;
-        			final Serializable id = lazyIdExtractor.extractId(change.getEntity());
-        			impl.setId(id);
-        			final String propertyName = lazyIdExtractor.extractIdPropertyName(change.getEntity());
-        			if (propertyName != null)
-        			{
-        			    impl.prependIdPropertyChange(propertyName, id, deleted);
-        			}
-    		    }
+    		    setIdOnDataChange(change, deleted);
     		}
     	}
 	}
 	
-	public JpaTransactionManagerInterceptor setLazyIdExtractor(LazyIdExtractor lazyIdExtractor)
+	private void setIdOnDataChange(EntityDataChange change, boolean deleted)
+	{
+	    final EntityDataChangeImpl impl = (EntityDataChangeImpl) change;
+	    
+	    Serializable id = null;
+	    if (change.getId() == null)
+        {
+            id = lazyIdExtractor.extractId(change.getEntity());
+        }
+	    else
+	    {
+	        id = change.getId();
+	    }
+	    
+	    final String propertyName = lazyIdExtractor.extractIdPropertyName(change.getEntity());
+	    
+	    final Optional<PropertyChange<?>> idProp = impl.getPropertyChange(propertyName);
+	    if (! idProp.isPresent())
+        {
+            impl.prependIdPropertyChange(propertyName, id, deleted);
+        }
+    }
+
+    public JpaTransactionManagerInterceptor setLazyIdExtractor(LazyIdExtractor lazyIdExtractor)
 	{
 		this.lazyIdExtractor = lazyIdExtractor;
 		return this;
@@ -259,8 +290,10 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
             return;
         }
 	    
-		final MutableEntityDataChangeSet cs = changeset.get();
-		cs.getCreated().add(entityData);
+		final MutableEntityDataChangeSet preCs = preChangeset.get();
+		preCs.getCreated().add(entityData);
+		final MutableEntityDataChangeSet postCs = postChangeset.get();
+		postCs.getCreated().add(entityData);
 		
 		for (EntityChangeListener listener : this.entityChangeListeners)
 		{
@@ -276,8 +309,10 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
             return;
         }
 	    
-		final MutableEntityDataChangeSet cs = changeset.get();
-		cs.getUpdated().add(entityData);
+		final MutableEntityDataChangeSet preCs = preChangeset.get();
+		preCs.getUpdated().add(entityData);
+		final MutableEntityDataChangeSet postCs = postChangeset.get();
+        postCs.getUpdated().add(entityData);
 		
 		for (EntityChangeListener listener : this.entityChangeListeners)
 		{
@@ -292,13 +327,44 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
         {
             return;
         }
+
+	    setIdOnDataChange(entityData, true);
 	    
-		final MutableEntityDataChangeSet cs = changeset.get();
-		cs.getDeleted().add(entityData);
+		final MutableEntityDataChangeSet preCs = preChangeset.get();
+		preCs.getDeleted().add(entityData);
+		final MutableEntityDataChangeSet postCs = postChangeset.get();
+        postCs.getDeleted().add(entityData);
 		
 		for (EntityChangeListener listener : this.entityChangeListeners)
 		{
 			listener.deleted(entityData);
 		}
 	}
+
+    @Override
+    public void postFlush(Iterator<Object> entities)
+    {
+        final Set<Object> flushed = new HashSet<>();
+        entities.forEachRemaining(flushed::add);
+        setAutoIdsAfterFlush(preChangeset.get(), flushed);
+        setAutoIdsAfterFlush(postChangeset.get(), flushed);
+    }
+
+    private void setAutoIdsAfterFlush(MutableEntityDataChangeSet cs, Collection<Object> flushed)
+    {
+        for (EntityDataChange ch : cs.getCreated())
+        {
+            final Object chEntity = ch.getEntity();
+            for (Object f : flushed)
+            {
+                if (chEntity == f)
+                {
+                    final Serializable id = lazyIdExtractor.extractId(f);
+                    final String idPropertyName = lazyIdExtractor.extractIdPropertyName(f);
+                    ((EntityDataChangeImpl)ch).setId(id);
+                    ((EntityDataChangeImpl)ch).prependIdPropertyChange(idPropertyName, id, false);
+                }
+            }
+        }
+    }
 }

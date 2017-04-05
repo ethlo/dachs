@@ -33,7 +33,7 @@ public class EntityUtil
 	{
 	    final List<PropertyChange<?>> propChanges = new ArrayList<PropertyChange<?>>();
 	    
-	    if (entityFilter.test(target))
+	    if (entityFilter == null || entityFilter.test(target))
 	    {
     		final Map<String, Field> fieldMap = new HashMap<String, Field>();
     		ReflectionUtils.doWithFields(target.getClass(), new ReflectionUtils.FieldCallback()
@@ -74,23 +74,12 @@ public class EntityUtil
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object getAuditValue(Object value)
     {
-	    if (isEntity(value))
-        {
-            value = persistenceUnitUtil.getIdentifier(value);
-        }
-        else if (value instanceof Collection)
+	    if (value instanceof Collection)
         {
             final Collection tmp = new LinkedList<>();
             for (Object v : (Collection) value)
             {
-                if (isEntity(v))
-                {
-                    tmp.add(persistenceUnitUtil.getIdentifier(v));
-                }
-                else
-                {
-                    tmp.add(v);
-                }
+                tmp.add(v);
             }
             return tmp;
         }
@@ -100,18 +89,10 @@ public class EntityUtil
             Set<Entry> set = ((Map) value).entrySet();
             for (Entry e : set)
             {
-                if (isEntity(e.getValue()))
-                {
-                    tmp.put(e.getKey(), (persistenceUnitUtil.getIdentifier(e.getValue())));
-                }
-                else
-                {
-                    tmp.put(e.getKey(), e.getValue());
-                }
+                tmp.put(e.getKey(), (persistenceUnitUtil.getIdentifier(e.getValue())));
             }
             return tmp;
         }
-	    
 	    return value;
     }
 

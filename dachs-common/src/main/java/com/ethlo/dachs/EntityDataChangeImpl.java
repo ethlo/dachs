@@ -3,11 +3,13 @@ package com.ethlo.dachs;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 
 public class EntityDataChangeImpl implements EntityDataChange
 {
@@ -19,7 +21,7 @@ public class EntityDataChangeImpl implements EntityDataChange
 	{
 		this.id = id;
 		this.entity = entity;
-		this.properties = new LinkedHashMap<>();
+		this.properties = new TreeMap<>();
 		for (PropertyChange<?> propertyChange : properties)
 		{
 			this.properties.put(propertyChange.getPropertyName(), propertyChange);
@@ -41,7 +43,16 @@ public class EntityDataChangeImpl implements EntityDataChange
 	@Override
 	public List<PropertyChange<?>> getPropertyChanges()
 	{
-		return new ArrayList<>(this.properties.values());
+		final List<PropertyChange<?>> retVal = new ArrayList<>(this.properties.values());
+		Collections.sort(retVal, new Comparator<PropertyChange<?>>()
+        {
+            @Override
+            public int compare(PropertyChange<?> o1, PropertyChange<?> o2)
+            {
+                return o1.getPropertyName().compareTo(o2.getPropertyName());
+            }
+        });
+		return retVal;
 	}
 	
 	@Override

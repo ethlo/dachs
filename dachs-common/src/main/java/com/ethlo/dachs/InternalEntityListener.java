@@ -1,6 +1,7 @@
 package com.ethlo.dachs;
 
 import java.lang.reflect.Field;
+import java.util.Iterator;
 import java.util.function.Predicate;
 
 /**
@@ -22,5 +23,7 @@ public interface InternalEntityListener
 	
 	Predicate<Field> getFieldFilter();
 	
-	Predicate<Object> getEntityFilter();	
+	Predicate<Object> getEntityFilter();
+
+    void postFlush(Iterator<Object> entities);
 }

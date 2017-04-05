@@ -11,9 +11,11 @@ import javax.sql.DataSource;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaBaseConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
+import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
@@ -26,20 +28,23 @@ import com.ethlo.dachs.CollectingEntityChangeListener;
 import com.ethlo.dachs.CollectingEntityChangeSetListener;
 import com.ethlo.dachs.EntityChangeListener;
 import com.ethlo.dachs.EntityChangeSetListener;
+import com.ethlo.dachs.EntityListenerIgnore;
 import com.ethlo.dachs.InternalEntityListener;
 import com.ethlo.dachs.jpa.JpaTransactionManagerInterceptor;
 import com.ethlo.dachs.test.Customer;
 import com.ethlo.dachs.test.CustomerRepository;
 
+@SpringBootApplication
 @EnableAutoConfiguration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackageClasses=CustomerRepository.class)
 @EntityScan(basePackageClasses=Customer.class)
 public class EclipselinkCfg extends JpaBaseConfiguration
 {
-	protected EclipselinkCfg(DataSource dataSource, JpaProperties properties, ObjectProvider<JtaTransactionManager> jtaTransactionManagerProvider)
+    protected EclipselinkCfg(DataSource dataSource, JpaProperties properties, ObjectProvider<JtaTransactionManager> jtaTransactionManager,
+                    ObjectProvider<TransactionManagerCustomizers> transactionManagerCustomizers)
     {
-        super(dataSource, properties, jtaTransactionManagerProvider);
+        super(dataSource, properties, jtaTransactionManager, transactionManagerCustomizers);
     }
 
     @Bean
@@ -86,6 +91,11 @@ public class EclipselinkCfg extends JpaBaseConfiguration
 	@Bean
 	public static JpaTransactionManagerInterceptor transactionManager(EntityManagerFactory emf, EntityChangeSetListener txnListener, EntityChangeListener directListener)
 	{
-		return new JpaTransactionManagerInterceptor(emf, Arrays.asList(txnListener), Arrays.asList(directListener));
+		return new JpaTransactionManagerInterceptor(emf, Arrays.asList(txnListener), Arrays.asList(directListener))
+		    .setLazyIdExtractor(new EclipselinkLazyIdExtractor(emf))
+            .setFieldFilter(f->
+            {
+                return f.getDeclaredAnnotation(EntityListenerIgnore.class) == null;
+            });
 	}
 }

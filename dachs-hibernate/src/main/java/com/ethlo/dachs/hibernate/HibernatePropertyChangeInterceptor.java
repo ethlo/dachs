@@ -2,10 +2,11 @@ package com.ethlo.dachs.hibernate;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import org.hibernate.EmptyInterceptor;
@@ -58,7 +59,7 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
     { "unchecked", "rawtypes" })
     private Collection<PropertyChange<?>> getProperties(Object entity, Object[] currentState, Object[] previousState, String[] propertyNames, Type[] types)
     {
-        final List<PropertyChange<?>> retVal = new ArrayList<>();
+        final Set<PropertyChange<?>> retVal = new HashSet<>();
 
         if (entityFilter.test(entity))
         {
@@ -75,5 +76,10 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
         }
 
         return retVal;
+    }
+
+    public void postFlush(Iterator entities)
+    {
+        listener.postFlush(entities);
     }
 }

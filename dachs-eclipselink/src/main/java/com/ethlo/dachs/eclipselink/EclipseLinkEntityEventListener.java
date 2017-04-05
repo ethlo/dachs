@@ -93,7 +93,7 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
 			final Class<?> attrType = accessor.getPropertyType(attrName);
 			
 			final Field field = ReflectionUtils.findField(objectClass, change.getAttribute());
-			if (! fieldFilter.test(field))
+			if (fieldFilter != null && !fieldFilter.test(field))
 			{
 			    continue;
 			}
@@ -119,7 +119,7 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
 			if (accessorNew.isReadableProperty(propName))
 			{
 			    final Field field = ReflectionUtils.findField(oldObj.getClass(), propName);
-			    if (filter.test(field))
+			    if (filter == null || filter.test(field))
 			    {
     			    final Object newPropValue = accessorNew.getPropertyValue(propName);
     				final Object oldPropValue = accessorOld.getPropertyValue(propName);
@@ -163,7 +163,6 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
 	public void prePersistEvent(DescriptorEvent event)
 	{
 		final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), false, entityFilter, fieldFilter));
-
 		listener.preCreate(e);
 	}
 
@@ -180,7 +179,7 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
 	{
 		final Serializable key = getObjectId(event.getObject());
 		final Object entity = event.getObject();
-		if (entityFilter.test(entity))
+		if (entityFilter == null || entityFilter.test(entity))
 		{
 		    final Collection<PropertyChange<?>> properties = handleModification(event);
 		    final EntityDataChange e = new EntityDataChangeImpl(key, entity, properties);

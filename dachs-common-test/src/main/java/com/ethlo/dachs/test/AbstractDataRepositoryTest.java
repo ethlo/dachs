@@ -44,11 +44,36 @@ public class AbstractDataRepositoryTest
 		throw new IllegalArgumentException("Could not find change for entity id " + id);
 	}
 
-	protected void assertMatch(@SuppressWarnings("rawtypes") PropertyChange change, String propName, Class<?> propType, Object oldValue, Object newValue)
+    protected void assertMatch(@SuppressWarnings("rawtypes") PropertyChange change, String propName, Class<?> propType, Object oldValue, Object newValue)
 	{
 		assertThat(change.getPropertyName()).isEqualTo(propName);
 		assertThat(propType.isAssignableFrom(change.getPropertyType())).isTrue();
-		assertThat(change.getOldValue()).isEqualTo(oldValue);
-		assertThat(change.getNewValue()).isEqualTo(newValue);
+		matches(change.getOldValue(), propType, oldValue);
+		matches(change.getNewValue(), propType, newValue);
 	}
+
+    @SuppressWarnings("unchecked")
+    private void matches(Object obj, Class<?> propType, Object expected)
+    {
+        if (Collection.class.isAssignableFrom(propType))
+		{
+		    final Collection<?> expectedNewValue = (Collection<?>) expected;
+		    if (expectedNewValue == null)
+		    {
+		        assertThat(obj).isNull();
+		    }
+		    else if (expectedNewValue.isEmpty())
+		    {
+		        assertThat((Collection<?>)obj).isEmpty();
+		    }
+		    else
+		    {
+		        assertThat((Collection<Object>)obj).containsExactly(expectedNewValue.toArray());
+		    }
+		}
+		else
+		{
+		    assertThat(obj).isEqualTo(expected);
+		}
+    }
 }

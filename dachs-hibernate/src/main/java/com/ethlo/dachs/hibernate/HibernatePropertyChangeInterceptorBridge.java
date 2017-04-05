@@ -1,12 +1,13 @@
 package com.ethlo.dachs.hibernate;
 
 import java.io.Serializable;
+import java.util.Iterator;
 
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
 import org.springframework.util.Assert;
 
-public class HibernatePropertyChangeInterceptorBridge extends EmptyInterceptor implements org.hibernate.Interceptor
+public class HibernatePropertyChangeInterceptorBridge extends EmptyInterceptor
 {
 	private static final long serialVersionUID = 6375798402716022601L;
 
@@ -16,6 +17,12 @@ public class HibernatePropertyChangeInterceptorBridge extends EmptyInterceptor i
 	{
 		HibernatePropertyChangeInterceptorBridge.instance = instance;
 	}
+	
+	@Override
+    public void postFlush(Iterator entities) 
+	{
+	    instance.postFlush(entities);
+    }
 	
 	@Override
 	public void onDelete(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types)

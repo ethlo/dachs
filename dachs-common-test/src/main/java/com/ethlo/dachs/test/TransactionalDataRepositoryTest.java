@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Currency;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -76,7 +77,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 		assertMatch(createChanges1.get(1), "id", Long.class, null, firstId.get());
 		assertMatch(createChanges1.get(2), "lastName", String.class, null, "Bauer");
 		assertMatch(createChanges1.get(3), "orders", Collection.class, null, new ArrayList<>(Arrays.asList(order)));
-		assertMatch(createChanges1.get(4), "tags", Set.class, null, new HashSet<>());
+		assertMatch(createChanges1.get(4), "tags", Set.class, null, new LinkedList<>());
 		
 		final AtomicLong joeId = new AtomicLong();
 		txTpl.execute(new TransactionCallbackWithoutResult()
@@ -105,7 +106,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 		assertMatch(createChangesM1.get(1), "id", Long.class, null, 5L);
 		assertMatch(createChangesM1.get(2), "lastName", String.class, null, "Cocker");
 		assertMatch(createChanges1.get(3), "orders", Collection.class, null, new ArrayList<>(Arrays.asList(order)));
-		assertMatch(createChanges1.get(4), "tags", Set.class, null, new HashSet<>());
+		assertMatch(createChanges1.get(4), "tags", Set.class, null, new LinkedList<>());
 	}
 	
 	@Test
@@ -179,15 +180,13 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 		assertMatch(deleteChanges1.get(1), "id", Long.class, 1L, null);
 		assertMatch(deleteChanges1.get(2), "lastName", String.class, "Jackman", null);
 		assertMatch(deleteChanges1.get(3), "orders", Collection.class, new ArrayList<>(), null);
-		assertMatch(deleteChanges1.get(4), "tags", Set.class, new LinkedHashSet<>(), null);
+		assertMatch(deleteChanges1.get(4), "tags", Set.class, new LinkedList<>(), null);
 	}
-
-	
 	
 	@Test
 	public void performanceTest()
 	{
-		final int iterations = 1_000;
+		final int iterations = 100;
 		final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
 		txTpl.execute(new TransactionCallbackWithoutResult()
 		{

@@ -2,7 +2,6 @@ package com.ethlo.dachs;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Set;
 
 @EntityListenerIgnore
 public class MutableEntityDataChangeSet implements EntityDataChangeSet
