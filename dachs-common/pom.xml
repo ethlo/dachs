@@ -3,21 +3,11 @@
 	<parent>
 		<groupId>com.ethlo.dachs</groupId>
 		<artifactId>dachs</artifactId>
-		<version>0.7.1-SNAPSHOT</version>
+		<version>0.7.1</version>
 	</parent>
 	<artifactId>dachs-common</artifactId>
 	<name>Dachs - Common</name>
 	<description>Dachs - Data Change Snitch - Common module</description>
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-source-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<artifactId>maven-javadoc-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -39,4 +29,22 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 </project>

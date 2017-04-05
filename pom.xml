@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.ethlo.dachs</groupId>
 	<artifactId>dachs</artifactId>
-	<version>0.7.1-SNAPSHOT</version>
+	<version>0.7.1</version>
 	<name>Dachs - Data Change Snitch</name>
 	<packaging>pom</packaging>
 	<parent>
@@ -105,9 +105,6 @@
 					<groupId>org.eluder.coveralls</groupId>
 					<artifactId>coveralls-maven-plugin</artifactId>
 					<version>4.3.0</version>
-					<configuration>
-						<repoToken>$</repoToken>
-					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
@@ -162,7 +159,27 @@
 						</execution>
 					</executions>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-gpg-plugin</artifactId>
+					<version>1.6</version>
+					<executions>
+						<execution>
+							<id>sign-artifacts</id>
+							<phase>verify</phase>
+							<goals>
+								<goal>sign</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<useAgent>false</useAgent>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
+	<properties>
+		<gpg.skip>true</gpg.skip>
+	</properties>
 </project>
