@@ -13,7 +13,6 @@ import org.eclipse.persistence.descriptors.ClassDescriptor;
 import org.eclipse.persistence.jpa.JpaEntityManager;
 import org.eclipse.persistence.mappings.DatabaseMapping;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
-import org.springframework.util.Assert;
 
 import com.ethlo.dachs.LazyIdExtractor;
 
@@ -39,7 +38,7 @@ public class EclipselinkLazyIdExtractor implements LazyIdExtractor
 	}
 
 	@Override
-	public String extractIdPropertyName(Object entity)
+	public String[] extractIdPropertyNames(Object entity)
 	{
 	    final EntityManager em = EntityManagerFactoryUtils.getTransactionalEntityManager(emf);
 	    final ClassDescriptor desc = em.unwrap(JpaEntityManager.class).getServerSession().getClassDescriptor(entity);
@@ -54,9 +53,12 @@ public class EclipselinkLazyIdExtractor implements LazyIdExtractor
     	            tmp.add(m);
     	        }
     	    }
-    	    Assert.isTrue(tmp.size() == 1);
-    	    final String idFieldName = fieldNames.iterator().next().getAttributeName();
-    	    return idFieldName;
+    	    final String[] retVal = new String[tmp.size()];
+    	    for (int i = 0; i < retVal.length; i++)
+    	    {
+    	        retVal[i] = tmp.get(i).getAttributeName();
+    	    }
+    	    return retVal;
 	    }
 	    
 	    return null;

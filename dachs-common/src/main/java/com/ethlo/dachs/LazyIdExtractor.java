@@ -15,9 +15,9 @@ public interface LazyIdExtractor
 	Serializable extractId(Object entity);
 
 	/**
-	 * Return the ID property name of the entity
+	 * Return the ID properties name of the entity
 	 * @param entity The entity to get the id property name from
-	 * @return the property name that is the identifier of the specified entity
+	 * @return the properties name that is the identifier of the specified entity
 	 */
-	String extractIdPropertyName(Object entity);
+	String[] extractIdPropertyNames(Object entity);
 }

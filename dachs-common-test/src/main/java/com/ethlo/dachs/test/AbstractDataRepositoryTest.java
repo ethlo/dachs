@@ -2,6 +2,7 @@ package com.ethlo.dachs.test;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -17,11 +18,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.PropertyChange;
+import com.ethlo.dachs.test.repository.CallRepository;
 import com.ethlo.dachs.test.repository.CustomerRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @Sql(value="classpath:init.sql", executionPhase=ExecutionPhase.BEFORE_TEST_METHOD)
-
 public class AbstractDataRepositoryTest
 {
 	@PersistenceContext
@@ -31,9 +32,12 @@ public class AbstractDataRepositoryTest
 	protected PlatformTransactionManager txnManager;
 	
 	@Autowired
-	protected CustomerRepository repository;
+	protected CustomerRepository customerRepository;
 	
-	protected EntityDataChange getById(Collection<EntityDataChange> changes, Class<?> type, long id)
+	@Autowired
+    protected CallRepository callRepository;
+	
+	protected EntityDataChange getById(Collection<EntityDataChange> changes, Class<?> type, Serializable id)
 	{
 		for (EntityDataChange e : changes)
 		{

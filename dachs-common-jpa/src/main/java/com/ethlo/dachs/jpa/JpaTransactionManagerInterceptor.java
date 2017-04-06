@@ -2,22 +2,28 @@ package com.ethlo.dachs.jpa;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.IdClass;
 
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.DefaultTransactionStatus;
+import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 import com.ethlo.dachs.EntityChangeListener;
 import com.ethlo.dachs.EntityChangeSetListener;
@@ -28,6 +34,7 @@ import com.ethlo.dachs.InternalEntityListener;
 import com.ethlo.dachs.LazyIdExtractor;
 import com.ethlo.dachs.MutableEntityDataChangeSet;
 import com.ethlo.dachs.PropertyChange;
+import com.ethlo.dachs.util.ReflectionUtil;
 
 /**
  * Caches entity changes until the transaction commits, or discards them in case of a roll-back.
@@ -205,34 +212,76 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
         {
     		for (EntityDataChange change : changeList)
     		{
-    		    setIdOnDataChange(change, deleted);
+    		    setIdOnDataChange(change, change.getEntity(), deleted);
     		}
     	}
 	}
 	
-	private void setIdOnDataChange(EntityDataChange change, boolean deleted)
+	private void setIdOnDataChange(EntityDataChange change, Object entity, boolean deleted)
 	{
 	    final EntityDataChangeImpl impl = (EntityDataChangeImpl) change;
 	    
 	    Serializable id = null;
 	    if (change.getId() == null)
         {
-            id = lazyIdExtractor.extractId(change.getEntity());
+            id = lazyIdExtractor.extractId(entity);
         }
 	    else
 	    {
 	        id = change.getId();
 	    }
 	    
-	    final String propertyName = lazyIdExtractor.extractIdPropertyName(change.getEntity());
+	    final String[] propertyNames = lazyIdExtractor.extractIdPropertyNames(entity);
+	    Assert.notNull(propertyNames, "propertyNames cannot be null");
 	    
-	    final Optional<PropertyChange<?>> idProp = impl.getPropertyChange(propertyName);
-	    if (! idProp.isPresent())
-        {
-            impl.prependIdPropertyChange(propertyName, id, deleted);
-        }
+	    final Map<String, Object> idProperties = getIdProperties(propertyNames, id, entity);
+	    
+	    for (String propertyName : propertyNames)
+	    {
+    	    final Optional<PropertyChange<?>> idProp = impl.getPropertyChange(propertyName);
+    	    if (! idProp.isPresent())
+            {
+    	        final Object value = idProperties.get(propertyName);
+                impl.prependIdPropertyChange(propertyName, value, deleted);
+            }
+	    }
+	    
+	    impl.setId(id);
     }
 
+    private Map<String, Object> getIdProperties(String[] propertyNames, Serializable id, Object entity)
+    {
+        final IdClass idClassAnn = entity.getClass().getAnnotation(IdClass.class);
+        final boolean isComposite = idClassAnn != null;
+        
+        if (! isComposite)
+        {
+            return Collections.singletonMap(propertyNames[0], id);
+        }
+        else
+        {
+            // We need to extract the id properties from the composite object
+            final Map<String, Object> retVal = new LinkedHashMap<>(propertyNames.length);
+            final Class<?> entityIdClass = idClassAnn.value();
+            ReflectionUtils.doWithFields(entityIdClass, (f)->
+            {
+                if (! Modifier.isStatic(f.getModifiers()))
+                {
+                    final String fieldName = f.getName();
+                    try
+                    {
+                        retVal.put(fieldName, ReflectionUtil.get(entity, fieldName));
+                    }
+                    catch (NoSuchFieldException exc)
+                    {
+                        throw new RuntimeException(exc);
+                    }
+                }
+            });
+            return retVal;
+        }
+    }
+    
     public JpaTransactionManagerInterceptor setLazyIdExtractor(LazyIdExtractor lazyIdExtractor)
 	{
 		this.lazyIdExtractor = lazyIdExtractor;
@@ -328,7 +377,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
             return;
         }
 
-	    setIdOnDataChange(entityData, true);
+	    setIdOnDataChange(entityData, entityData.getEntity(), true);
 	    
 		final MutableEntityDataChangeSet preCs = preChangeset.get();
 		preCs.getDeleted().add(entityData);
@@ -359,10 +408,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
             {
                 if (chEntity == f)
                 {
-                    final Serializable id = lazyIdExtractor.extractId(f);
-                    final String idPropertyName = lazyIdExtractor.extractIdPropertyName(f);
-                    ((EntityDataChangeImpl)ch).setId(id);
-                    ((EntityDataChangeImpl)ch).prependIdPropertyChange(idPropertyName, id, false);
+                    setIdOnDataChange(ch, f, false);
                 }
             }
         }

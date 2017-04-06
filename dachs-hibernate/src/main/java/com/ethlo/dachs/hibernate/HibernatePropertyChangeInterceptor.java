@@ -16,6 +16,7 @@ import org.springframework.util.ReflectionUtils;
 import com.ethlo.dachs.EntityDataChangeImpl;
 import com.ethlo.dachs.InternalEntityListener;
 import com.ethlo.dachs.PropertyChange;
+import com.ethlo.dachs.util.ReflectionUtil;
 
 public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
 {
@@ -35,14 +36,14 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
     @Override
     public void onDelete(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types)
     {
-        final Collection<PropertyChange<?>> props = getProperties(entity, new Object[state.length], state, propertyNames, types);
+        final Collection<PropertyChange<?>> props = getProperties(id, entity, new Object[state.length], state, propertyNames, types);
         listener.deleted(new EntityDataChangeImpl(id, entity, props));
     }
 
     @Override
     public boolean onSave(Object entity, Serializable id, Object[] state, String[] propertyNames, Type[] types)
     {
-        final Collection<PropertyChange<?>> props = getProperties(entity, state, new Object[state.length], propertyNames, types);
+        final Collection<PropertyChange<?>> props = getProperties(id, entity, state, new Object[state.length], propertyNames, types);
         listener.created(new EntityDataChangeImpl(id, entity, props));
         return false;
     }
@@ -50,34 +51,69 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
     @Override
     public boolean onFlushDirty(Object entity, Serializable id, Object[] currentState, Object[] previousState, String[] propertyNames, Type[] types)
     {
-        final Collection<PropertyChange<?>> props = getProperties(entity, currentState, previousState, propertyNames, types);
+        final Collection<PropertyChange<?>> props = getProperties(id, entity, currentState, previousState, propertyNames, types);
         listener.updated(new EntityDataChangeImpl(id, entity, props));
         return false;
     }
 
     @SuppressWarnings(
     { "unchecked", "rawtypes" })
-    private Collection<PropertyChange<?>> getProperties(Object entity, Object[] currentState, Object[] previousState, String[] propertyNames, Type[] types)
+    private Collection<PropertyChange<?>> getProperties(Serializable id, final Object entity, Object[] currentState, Object[] previousState, String[] propertyNames, Type[] types)
     {
         final Set<PropertyChange<?>> retVal = new HashSet<>();
 
         if (entityFilter.test(entity))
         {
+            boolean composite = false;
             for (int i = 0; i < propertyNames.length; i++)
             {
                 final String propertyName = propertyNames[i];
-                final Field field = ReflectionUtils.findField(entity.getClass(), propertyName);
-                if (this.fieldFilter.test(field) && !Objects.equals(previousState[i], currentState[i]))
+                Field field = ReflectionUtils.findField(entity.getClass(), propertyName);
+
+                if (field == null)
+                {
+                    // We have a composite key
+                    composite = true;
+                }
+                    
+                if (field != null && this.fieldFilter.test(field) && !Objects.equals(previousState[i], currentState[i]))
                 {
                     final PropertyChange changed = new PropertyChange(propertyName, types[i].getReturnedClass(), previousState[i], currentState[i]);
                     retVal.add(changed);
                 }
+            }
+            
+            if (composite)
+            {
+                final Class<?> entityClass = entity.getClass();
+                ReflectionUtils.doWithFields(id.getClass(), (f)->
+                {
+                    final String fieldName = f.getName();
+                    Field entityField;
+                    try
+                    {
+                        entityField = ReflectionUtil.getField(entityClass, fieldName);
+                    }
+                    catch (NoSuchFieldException | SecurityException exc)
+                    {
+                        throw new RuntimeException(exc);
+                    }
+                    
+                    final Class<?> fieldType = entityField.getType();
+                    entityField.setAccessible(true);
+                    final Object after = entityField.get(entity);
+                    final Object before = after;
+                    final PropertyChange changed = new PropertyChange(fieldName, fieldType, before, after);
+                    retVal.add(changed);
+                }, 
+                (f)->fieldFilter.test(f));
             }
         }
 
         return retVal;
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public void postFlush(Iterator entities)
     {
         listener.postFlush(entities);

@@ -1,9 +1,10 @@
-package com.ethlo.dachs.test.repository;
+package com.ethlo.dachs.test;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -18,8 +19,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import com.ethlo.dachs.CollectingEntityChangeListener;
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.PropertyChange;
-import com.ethlo.dachs.test.AbstractDataRepositoryTest;
 import com.ethlo.dachs.test.model.Customer;
+import com.ethlo.dachs.test.model.SupportCall;
+import com.ethlo.dachs.test.model.SupportCallId;
 
 public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 {
@@ -39,11 +41,11 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 		final AtomicLong firstId = new AtomicLong();
 
 		// Create
-		final Customer first = repository.save(new Customer("Jack", "Bauer"));
+		final Customer first = customerRepository.save(new Customer("Jack", "Bauer"));
 		firstId.set(first.getId());
 		
-		repository.save(new Customer("Chloe", "O'Brian"));
-		repository.save(new Customer("Kim", "Bauer"));
+		customerRepository.save(new Customer("Chloe", "O'Brian"));
+		customerRepository.save(new Customer("Kim", "Bauer"));
 		
 		final List<EntityDataChange> created = listener.getPostCreated();
 		Assert.assertEquals(3, created.size());
@@ -59,10 +61,10 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 		assertMatch(createChanges1.get(4), "tags", Set.class, null, new LinkedList<>());
 		
 		final AtomicLong joeId = new AtomicLong();
-		final Customer joe = repository.save(new Customer("Joe", "Cocker"));
+		final Customer joe = customerRepository.save(new Customer("Joe", "Cocker"));
 		joeId.set(joe.getId());
 		
-		repository.save(new Customer("Michael", "Jackson"));
+		customerRepository.save(new Customer("Michael", "Jackson"));
 		
 		final List<EntityDataChange> createdM = listener.getPostCreated();
 		Assert.assertEquals(5, createdM.size());
@@ -82,17 +84,17 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 	@Test
 	public void testUpdateNoChanges()
 	{
-		repository.findOne(1L);
+		customerRepository.findOne(1L);
 		assertThat(true).isTrue();
-	}		
+	}
 	
 	@Test
 	public void testUpdate()
 	{
-		final Customer existing1 = repository.findOne(1L);
+		final Customer existing1 = customerRepository.findOne(1L);
 		existing1.setFirstName(existing1.getFirstName() + "_updated");
 		existing1.setLastName(existing1.getLastName() + "_updated");
-		repository.save(existing1);
+		customerRepository.save(existing1);
 		
 		final List<EntityDataChange> updated = listener.getPostUpdated();
 		Assert.assertEquals(1, updated.size());
@@ -109,8 +111,8 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 	@Test
 	public void testDelete()
 	{
-		final Customer existing1 = repository.findOne(1L);
-		repository.delete(existing1);
+		final Customer existing1 = customerRepository.findOne(1L);
+		customerRepository.delete(existing1);
 		
 		final List<EntityDataChange> deleted = listener.getPostDeleted();
 		Assert.assertEquals(1, deleted.size());
@@ -133,7 +135,7 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 		final int iterations = 1_000;
 		for (int i = 0; i < iterations; i++)
 		{
-			repository.save(new Customer("Foo", "Bar " + i));
+			customerRepository.save(new Customer("Foo", "Bar " + i));
 		}
 		Assert.assertEquals(iterations, listener.getPostCreated().size());
 	}

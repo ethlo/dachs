@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Currency;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +28,8 @@ import com.ethlo.dachs.test.model.Customer;
 import com.ethlo.dachs.test.model.OrderLine;
 import com.ethlo.dachs.test.model.Product;
 import com.ethlo.dachs.test.model.ProductOrder;
+import com.ethlo.dachs.test.model.SupportCall;
+import com.ethlo.dachs.test.model.SupportCallId;
 
 public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 {
@@ -38,6 +41,25 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 	{
 		listener.clear();
 	}
+	
+    @Test
+    public void testMultiFieldPrimaryKey()
+    {
+        final Date callTime = new Date();
+        final TransactionTemplate txTpl = new TransactionTemplate(txnManager);
+        txTpl.execute((t)->
+        {
+            final Customer customer = customerRepository.save(new Customer("Michael", "Jackson"));
+            callRepository.save(new SupportCall().setCustomer(customer).setCallTime(callTime).setNotes("happy days!"));
+            
+            return null;
+        });
+        
+        final Collection<EntityDataChange> created = listener.getPostDataChangeSet().getCreated();
+        assertThat(created).hasSize(2);
+        final EntityDataChange change = getById(created, SupportCall.class, new SupportCallId(2, callTime));
+        assertThat(change).isNotNull();    
+    }
 	
 	@Test
 	@DirtiesContext
@@ -59,12 +81,12 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 				order.addLine(new OrderLine().setProduct(p).setAmount(4000).setCount(4));
 				c.addOrder(order);
 				
-				final Customer first = repository.save(c);
+				final Customer first = customerRepository.save(c);
 				em.flush();
 				firstId.set(first.getId());
 				
-				repository.save(new Customer("Chloe", "O'Brian"));
-				repository.save(new Customer("Kim", "Bauer"));
+				customerRepository.save(new Customer("Chloe", "O'Brian"));
+				customerRepository.save(new Customer("Kim", "Bauer"));
 			}
 		});
 		
@@ -88,11 +110,11 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 			protected void doInTransactionWithoutResult(TransactionStatus status)
 			{
 				// Create
-				final Customer joe = repository.save(new Customer("Joe", "Cocker"));
+				final Customer joe = customerRepository.save(new Customer("Joe", "Cocker"));
 				em.flush();
 				joeId.set(joe.getId());
 				
-				repository.save(new Customer("Michael", "Jackson"));
+				customerRepository.save(new Customer("Michael", "Jackson"));
 			}
 		});
 		
@@ -122,7 +144,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 			protected void doInTransactionWithoutResult(TransactionStatus status)
 			{
 				// Just load an entity, do not perform any changes
-				repository.findOne(1L);
+				customerRepository.findOne(1L);
 			}
 		});
 	}		
@@ -137,7 +159,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 			@Override
 			protected void doInTransactionWithoutResult(TransactionStatus status)
 			{
-				final Customer existing1 = repository.findOne(1L);
+				final Customer existing1 = customerRepository.findOne(1L);
 				existing1.setFirstName(existing1.getFirstName() + "_updated");
 				existing1.setLastName(existing1.getLastName() + "_updated");
 			}
@@ -165,8 +187,8 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 			@Override
 			protected void doInTransactionWithoutResult(TransactionStatus status)
 			{
-				final Customer existing1 = repository.findOne(1L);
-				repository.delete(existing1);
+				final Customer existing1 = customerRepository.findOne(1L);
+				customerRepository.delete(existing1);
 			}
 		});
 		
@@ -197,7 +219,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 			{
 				for (int i = 0; i < iterations; i++)
 				{
-					repository.save(new Customer("Foo", "Bar " + i));
+					customerRepository.save(new Customer("Foo", "Bar " + i));
 				}
 			}
 		});

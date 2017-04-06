@@ -97,7 +97,7 @@ public class EntityDataChangeImpl implements EntityDataChange
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void prependIdPropertyChange(String idPropertyName, Serializable id, boolean deleted)
+	public void prependIdPropertyChange(String idPropertyName, Object id, boolean deleted)
 	{
 		this.properties.put(idPropertyName, new PropertyChange(idPropertyName, id.getClass(), deleted ? id : null, deleted ? null : id));
 	}

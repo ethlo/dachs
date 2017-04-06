@@ -1,5 +1,6 @@
 package com.ethlo.dachs.hibernate;
 
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -75,7 +76,8 @@ public class HibernateCfg extends JpaBaseConfiguration
 		    .setLazyIdExtractor(new HibernateLazyIdExtractor(emf))
             .setFieldFilter(f->
             {
-                return f.getDeclaredAnnotation(EntityListenerIgnore.class) == null;
+                return !Modifier.isStatic(f.getModifiers()) 
+                       && f.getDeclaredAnnotation(EntityListenerIgnore.class) == null;
             });
 	}
 	
