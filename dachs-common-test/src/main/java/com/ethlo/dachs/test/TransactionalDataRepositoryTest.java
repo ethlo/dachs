@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Currency;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +23,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 import com.ethlo.dachs.CollectingEntityChangeSetListener;
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.PropertyChange;
+import com.ethlo.dachs.test.model.Customer;
+import com.ethlo.dachs.test.model.OrderLine;
+import com.ethlo.dachs.test.model.Product;
+import com.ethlo.dachs.test.model.ProductOrder;
 
 public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 {
@@ -54,7 +56,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 				// Create
 				final Customer c = new Customer("Jack", "Bauer");
 				final Product p = new Product("C4", 1_000, Currency.getInstance("USD"));
-				order.addLine(new OrderLine().withProduct(p));
+				order.addLine(new OrderLine().setProduct(p).setAmount(4000).setCount(4));
 				c.addOrder(order);
 				
 				final Customer first = repository.save(c);

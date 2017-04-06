@@ -1,4 +1,4 @@
-package com.ethlo.dachs.test;
+package com.ethlo.dachs.test.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;

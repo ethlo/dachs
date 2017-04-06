@@ -28,8 +28,8 @@ import com.ethlo.dachs.EntityChangeSetListener;
 import com.ethlo.dachs.EntityListenerIgnore;
 import com.ethlo.dachs.InternalEntityListener;
 import com.ethlo.dachs.jpa.JpaTransactionManagerInterceptor;
-import com.ethlo.dachs.test.Customer;
-import com.ethlo.dachs.test.CustomerRepository;
+import com.ethlo.dachs.test.model.Customer;
+import com.ethlo.dachs.test.repository.CustomerRepository;
 
 @SpringBootApplication
 @EnableAutoConfiguration

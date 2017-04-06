@@ -1,4 +1,4 @@
-package com.ethlo.dachs.test;
+package com.ethlo.dachs.test.model;
 
 import java.util.Currency;
 
@@ -16,7 +16,7 @@ public class Product
     
 	private String name;
 	private Currency currency;
-	private int priceInCents;
+	private Integer priceInCents;
 	
 	protected Product()
 	{
@@ -29,4 +29,24 @@ public class Product
 		this.priceInCents = priceInCents;
 		this.currency = currency;
 	}
+
+    public Integer getId()
+    {
+        return id;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public Currency getCurrency()
+    {
+        return currency;
+    }
+
+    public Integer getPriceInCents()
+    {
+        return priceInCents;
+    }
 }

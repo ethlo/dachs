@@ -1,4 +1,4 @@
-package com.ethlo.dachs.test;
+package com.ethlo.dachs.test.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +36,41 @@ public class ProductOrder
 		this.lines.add(orderLine);
 	}
 
-	public void setCustomer(Customer customer)
+	public ProductOrder setCustomer(Customer customer)
 	{
 		this.customer = customer;
+		return this;
 	}
+
+    public String getNotes()
+    {
+        return notes;
+    }
+
+    public ProductOrder setNotes(String notes)
+    {
+        this.notes = notes;
+        return this;
+    }
+
+    public List<OrderLine> getLines()
+    {
+        return lines;
+    }
+
+    public ProductOrder setLines(List<OrderLine> lines)
+    {
+        this.lines = lines;
+        return this;
+    }
+
+    public Integer getId()
+    {
+        return id;
+    }
+
+    public Customer getCustomer()
+    {
+        return customer;
+    }
 }

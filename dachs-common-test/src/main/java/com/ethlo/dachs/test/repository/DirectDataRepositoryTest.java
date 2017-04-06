@@ -1,4 +1,4 @@
-package com.ethlo.dachs.test;
+package com.ethlo.dachs.test.repository;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
@@ -18,6 +18,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import com.ethlo.dachs.CollectingEntityChangeListener;
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.PropertyChange;
+import com.ethlo.dachs.test.AbstractDataRepositoryTest;
+import com.ethlo.dachs.test.model.Customer;
 
 public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 {

@@ -17,6 +17,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.PropertyChange;
+import com.ethlo.dachs.test.repository.CustomerRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @Sql(value="classpath:init.sql", executionPhase=ExecutionPhase.BEFORE_TEST_METHOD)
