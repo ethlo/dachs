@@ -1,8 +1,5 @@
 package com.ethlo.dachs;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import static org.fest.assertions.api.Assertions.assertThat;
 
 import org.junit.Test;

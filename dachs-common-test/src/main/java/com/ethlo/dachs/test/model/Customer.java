@@ -92,5 +92,20 @@ public class Customer
 		this.orders.add(order);
 		order.setCustomer(this);
 	}
+
+    public Set<String> getTags()
+    {
+        return tags;
+    }
+
+    public Integer getVersion()
+    {
+        return version;
+    }
+
+    public List<ProductOrder> getOrders()
+    {
+        return orders;
+    }
 }
 

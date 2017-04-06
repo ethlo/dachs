@@ -10,7 +10,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnitUtil;
 
 import org.eclipse.persistence.descriptors.ClassDescriptor;
-import org.eclipse.persistence.internal.helper.DatabaseField;
 import org.eclipse.persistence.jpa.JpaEntityManager;
 import org.eclipse.persistence.mappings.DatabaseMapping;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
