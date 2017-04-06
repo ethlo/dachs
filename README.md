@@ -1,4 +1,8 @@
 # Dachs - Data Change Snitch
+[![Build Status](https://travis-ci.org/ethlo/dachs.svg?branch=master)](https://travis-ci.org/ethlo/dachs)
+[![Maven Central](https://img.shields.io/maven-central/v/com.ethlo.dachs/dachs.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.ethlo.dachs%22%20a%3A%22dachs%22)
+[![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](LICENSE)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9b2a46c2ffdb4c86ad971eec64a06e8b)](https://www.codacy.com/app/ethlo/dachs?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ethlo/dachs&amp;utm_campaign=Badge_Grade)
 
 ### Goal
 
@@ -16,8 +20,6 @@ All the different persistence frameworks have their different APIs for detecting
 
 ### Maven artifact
 
-URL: http://ethlo.com/maven/
-
 ```xml
 <dependency>
   <groupId>com.ethlo.dachs</groupId>
@@ -26,12 +28,9 @@ URL: http://ethlo.com/maven/
 </dependency>
 ```
 
-### Status
-[![Build Status](https://travis-ci.org/ethlo/dachs.png?branch=master)](https://travis-ci.org/ethlo/dachs)
-
 ### Supported persistence frameworks
-* Eclipselink - [Guide](dachs-eclipselink/README.md)
-* Hibernate - [Guide](dachs-hibernate/README.md)
+* Eclipselink
+* Hibernate
 
 ### API
 The goal is to have a simple, but powerful API to get notifications of all changes to entities, that is `created`, `updated` and `deleted`.
@@ -99,7 +98,7 @@ public interface PropertyChange<T>
 	T getNewValue();
 }
 ```
-####Example output
+#### Example output
 
 Given a simple Person object:
 
@@ -111,7 +110,7 @@ public class Person()
 }
 ```
 
-#####Created
+##### Created
 ```
 EntityData
 	propertyChanges:
@@ -119,7 +118,7 @@ EntityData
 		* age - null => 34
 ```
 
-#####Updated
+##### Updated
 ```
 EntityData
 	propertyChanges:
@@ -127,7 +126,7 @@ EntityData
 		* age - 34 => 47
 ```
 
-#####Deleted
+##### Deleted
 ```
 EntityData
 	propertyChanges:
