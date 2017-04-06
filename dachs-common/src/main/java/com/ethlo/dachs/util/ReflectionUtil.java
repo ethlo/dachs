@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ReflectionUtil
 {
-    public static Object get(Object someObject, String fieldName) throws NoSuchFieldException
+    public static Object get(Object someObject, String fieldName) throws RuntimeNoSuchFieldException
     {
         final Field field = getField(someObject.getClass(), fieldName);
         field.setAccessible(true);
@@ -15,9 +15,9 @@ public class ReflectionUtil
         {
             return field.get(someObject);
         }
-        catch (IllegalArgumentException | IllegalAccessException exc)
+        catch (IllegalAccessException exc)
         {
-            throw new RuntimeException(exc);
+            throw new RuntimeIllegalAccessException(exc);
         }
     }
     
@@ -31,7 +31,7 @@ public class ReflectionUtil
         return fields;
     }
     
-    public static Field getField(Class<?> type, String fieldName) throws NoSuchFieldException
+    public static Field getField(Class<?> type, String fieldName) throws RuntimeNoSuchFieldException
     {
         for (Class<?> c = type; c != null; c = c.getSuperclass())
         {
@@ -45,9 +45,9 @@ public class ReflectionUtil
             }
             catch (SecurityException exc)
             {
-                throw new RuntimeException(exc);
+                throw new RuntimeSecurityException(exc);
             }
         }
-        throw new NoSuchFieldException(fieldName);
+        throw new RuntimeNoSuchFieldException(new NoSuchFieldException(fieldName));
     }
 }

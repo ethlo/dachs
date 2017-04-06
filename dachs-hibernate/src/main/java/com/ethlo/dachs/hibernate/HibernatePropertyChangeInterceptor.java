@@ -89,16 +89,7 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
                 ReflectionUtils.doWithFields(id.getClass(), (f)->
                 {
                     final String fieldName = f.getName();
-                    Field entityField;
-                    try
-                    {
-                        entityField = ReflectionUtil.getField(entityClass, fieldName);
-                    }
-                    catch (NoSuchFieldException | SecurityException exc)
-                    {
-                        throw new RuntimeException(exc);
-                    }
-                    
+                    final Field entityField = ReflectionUtil.getField(entityClass, fieldName);
                     final Class<?> fieldType = entityField.getType();
                     entityField.setAccessible(true);
                     final Object after = entityField.get(entity);

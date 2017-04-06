@@ -4,7 +4,6 @@ import static org.fest.assertions.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -20,8 +19,6 @@ import com.ethlo.dachs.CollectingEntityChangeListener;
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.PropertyChange;
 import com.ethlo.dachs.test.model.Customer;
-import com.ethlo.dachs.test.model.SupportCall;
-import com.ethlo.dachs.test.model.SupportCallId;
 
 public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 {

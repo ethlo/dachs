@@ -268,14 +268,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
                 if (! Modifier.isStatic(f.getModifiers()))
                 {
                     final String fieldName = f.getName();
-                    try
-                    {
-                        retVal.put(fieldName, ReflectionUtil.get(entity, fieldName));
-                    }
-                    catch (NoSuchFieldException exc)
-                    {
-                        throw new RuntimeException(exc);
-                    }
+                    retVal.put(fieldName, ReflectionUtil.get(entity, fieldName));
                 }
             });
             return retVal;
