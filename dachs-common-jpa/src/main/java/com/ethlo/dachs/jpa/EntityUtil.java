@@ -2,19 +2,13 @@ package com.ethlo.dachs.jpa;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Predicate;
 
 import javax.persistence.Entity;
-import javax.persistence.PersistenceUnitUtil;
 
 import org.springframework.util.ReflectionUtils;
 
@@ -22,13 +16,6 @@ import com.ethlo.dachs.PropertyChange;
 
 public class EntityUtil
 {
-    private final PersistenceUnitUtil persistenceUnitUtil;
-    
-    public EntityUtil(PersistenceUnitUtil persistenceUnitUtil)
-    {
-        this.persistenceUnitUtil = persistenceUnitUtil;
-    }
-    
 	public List<PropertyChange<?>> extractEntityProperties(Object target, boolean deleted, Predicate<Object> entityFilter, Predicate<Field> fieldFilter)
 	{
 	    final List<PropertyChange<?>> propChanges = new ArrayList<PropertyChange<?>>();
@@ -66,36 +53,11 @@ public class EntityUtil
 	    if (fieldFilter.test(field))
 	    {
     		final String fieldName = field.getName();
-    		final Object value = getAuditValue(ReflectionUtils.getField(field, target));
+    		final Object value = ReflectionUtils.getField(field, target);
     		propChanges.add(new PropertyChange(fieldName, field.getType(), deleted ? value : null, deleted ? null : value));
 	    }
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Object getAuditValue(Object value)
-    {
-	    if (value instanceof Collection)
-        {
-            final Collection tmp = new LinkedList<>();
-            for (Object v : (Collection) value)
-            {
-                tmp.add(v);
-            }
-            return tmp;
-        }
-        else if (value instanceof Map)
-        {
-            final Map tmp = new LinkedHashMap<>();
-            Set<Entry> set = ((Map) value).entrySet();
-            for (Entry e : set)
-            {
-                tmp.put(e.getKey(), (persistenceUnitUtil.getIdentifier(e.getValue())));
-            }
-            return tmp;
-        }
-	    return value;
-    }
-
     public boolean isEntity(Object value)
     {
 	    if (value != null)

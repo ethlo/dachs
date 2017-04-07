@@ -8,18 +8,18 @@ public abstract class EntityChangeSetListenerAdapter implements EntityChangeSetL
     @Override
     public void preDataChanged(EntityDataChangeSet changeset)
     {
-        
+        // Empty implementation
     }
 
     @Override
     public void postDataChanged(EntityDataChangeSet changeset)
     {
-        
+        // Empty implementation        
     }
 
     @Override
     public void begin()
     {
-        
+        // Empty implementation
     }
 }
