@@ -1,9 +1,13 @@
 package com.ethlo.dachs.test.model;
 
+import static javax.persistence.CascadeType.ALL;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -14,6 +18,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
@@ -34,6 +39,10 @@ public class Customer
     @CollectionTable(name="customer_tags")
     @ElementCollection(fetch=FetchType.EAGER)
     private Set<String> tags = new HashSet<>();
+    
+    @OneToMany(mappedBy = "customer", cascade = ALL, orphanRemoval = true)
+    @MapKey(name = "name")
+    private Map<String, Category> categories = new HashMap<>();
     
     @Version
     @EntityListenerIgnore
@@ -106,6 +115,11 @@ public class Customer
     public List<ProductOrder> getOrders()
     {
         return orders;
+    }
+
+    public void addCategory(Category category)
+    {
+        this.categories.put(category.getName(), category);
     }
 }
 

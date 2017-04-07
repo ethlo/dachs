@@ -9,12 +9,14 @@ import java.util.Objects;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.PropertyChange;
@@ -36,6 +38,14 @@ public class AbstractDataRepositoryTest
 	
 	@Autowired
     protected CallRepository callRepository;
+
+    protected TransactionTemplate txTpl;
+	
+	@Before
+	public void txnTpl()
+	{
+	    this.txTpl = new TransactionTemplate(txnManager);
+	}
 	
 	protected EntityDataChange getById(Collection<EntityDataChange> changes, Class<?> type, Serializable id)
 	{

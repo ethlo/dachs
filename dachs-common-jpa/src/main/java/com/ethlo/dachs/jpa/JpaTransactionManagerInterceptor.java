@@ -265,7 +265,7 @@ public class JpaTransactionManagerInterceptor extends JpaTransactionManager impl
             final Class<?> entityIdClass = idClassAnn.value();
             ReflectionUtils.doWithFields(entityIdClass, (f)->
             {
-                if (! Modifier.isStatic(f.getModifiers()))
+                if (! Modifier.isStatic(f.getModifiers()) && fieldFilter.test(f))
                 {
                     final String fieldName = f.getName();
                     retVal.put(fieldName, ReflectionUtil.get(entity, fieldName));

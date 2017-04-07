@@ -104,7 +104,10 @@ public class IdentityUtil
             return null;
         }
         final Map<Object, Object> tmp = new LinkedHashMap<>();
-        map.entrySet().forEach(e->{tmp.put(e.getKey(), transform(e.getClass(), e));});
+        map.entrySet().forEach(e->
+        {
+            tmp.put(e.getKey(), transform(e.getValue().getClass(), e.getValue()));
+        });
         return tmp;
     }
 

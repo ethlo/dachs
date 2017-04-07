@@ -4,8 +4,10 @@ import static org.fest.assertions.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -50,12 +52,13 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 		assertThat(created1.getId()).isEqualTo(firstId.get());
 		assertThat(created1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
 		final List<PropertyChange<?>> createChanges1 = created1.getPropertyChanges();
-		assertThat(createChanges1.size()).isEqualTo(5);
-		assertMatch(createChanges1.get(0), "firstName", String.class, null, "Jack");
-		assertMatch(createChanges1.get(1), "id", Long.class, null, firstId.get());
-		assertMatch(createChanges1.get(2), "lastName", String.class, null, "Bauer");
-		assertMatch(createChanges1.get(3), "orders", Collection.class, null, new ArrayList<>());
-		assertMatch(createChanges1.get(4), "tags", Set.class, null, new LinkedList<>());
+		assertThat(createChanges1.size()).isEqualTo(6);
+		assertMatch(createChanges1.get(0), "categories", Map.class, null, Collections.emptyMap());
+		assertMatch(createChanges1.get(1), "firstName", String.class, null, "Jack");
+		assertMatch(createChanges1.get(2), "id", Long.class, null, firstId.get());
+		assertMatch(createChanges1.get(3), "lastName", String.class, null, "Bauer");
+		assertMatch(createChanges1.get(4), "orders", Collection.class, null, new ArrayList<>());
+		assertMatch(createChanges1.get(5), "tags", Set.class, null, new LinkedList<>());
 		
 		final AtomicLong joeId = new AtomicLong();
 		final Customer joe = customerRepository.save(new Customer("Joe", "Cocker"));
@@ -70,12 +73,13 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 		assertThat(createdM1.getId()).isEqualTo(joeId.get());
 		assertThat(createdM1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
 		final List<PropertyChange<?>> createChangesM1 = createdM1.getPropertyChanges();
-		assertThat(createChangesM1.size()).isEqualTo(5);
-		assertMatch(createChangesM1.get(0), "firstName", String.class, null, "Joe");
-		assertMatch(createChangesM1.get(1), "id", Long.class, null, 5L);
-		assertMatch(createChangesM1.get(2), "lastName", String.class, null, "Cocker");
-		assertMatch(createChanges1.get(3), "orders", Collection.class, null, new ArrayList<>());
-		assertMatch(createChanges1.get(4), "tags", Set.class, null, new LinkedList<>());
+		assertThat(createChangesM1.size()).isEqualTo(6);
+		assertMatch(createChangesM1.get(0), "categories", Map.class, null, Collections.emptyMap());
+		assertMatch(createChangesM1.get(1), "firstName", String.class, null, "Joe");
+		assertMatch(createChangesM1.get(2), "id", Long.class, null, 5L);
+		assertMatch(createChangesM1.get(3), "lastName", String.class, null, "Cocker");
+		assertMatch(createChanges1.get(4), "orders", Collection.class, null, new ArrayList<>());
+		assertMatch(createChanges1.get(5), "tags", Set.class, null, new LinkedList<>());
 	}
 	
 	@Test
@@ -118,12 +122,13 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 		assertThat(deleted1.getId()).isEqualTo(1L);
 		assertThat(deleted1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
 		final List<PropertyChange<?>> deleteChanges1 = deleted1.getPropertyChanges();
-		assertThat(deleteChanges1.size()).isEqualTo(5);
-		assertMatch(deleteChanges1.get(0), "firstName", String.class, "Hugh", null);
-		assertMatch(deleteChanges1.get(1), "id", Long.class, 1L, null);
-		assertMatch(deleteChanges1.get(2), "lastName", String.class, "Jackman", null);
-		assertMatch(deleteChanges1.get(3), "orders", Collection.class, new ArrayList<>(), null);
-		assertMatch(deleteChanges1.get(4), "tags", Set.class, new LinkedList<>(), null);
+		assertThat(deleteChanges1.size()).isEqualTo(6);
+		assertMatch(deleteChanges1.get(0), "categories", Map.class, Collections.emptyMap(), null);
+		assertMatch(deleteChanges1.get(1), "firstName", String.class, "Hugh", null);
+		assertMatch(deleteChanges1.get(2), "id", Long.class, 1L, null);
+		assertMatch(deleteChanges1.get(3), "lastName", String.class, "Jackman", null);
+		assertMatch(deleteChanges1.get(4), "orders", Collection.class, new ArrayList<>(), null);
+		assertMatch(deleteChanges1.get(5), "tags", Set.class, new LinkedList<>(), null);
 	}
 
 	@Test
