@@ -18,6 +18,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
@@ -30,7 +31,8 @@ import com.ethlo.dachs.EntityChangeListener;
 import com.ethlo.dachs.EntityChangeSetListener;
 import com.ethlo.dachs.EntityListenerIgnore;
 import com.ethlo.dachs.InternalEntityListener;
-import com.ethlo.dachs.jpa.JpaTransactionManagerInterceptor;
+import com.ethlo.dachs.jpa.DefaultInternalEntityListener;
+import com.ethlo.dachs.jpa.NotifyingJpaTransactionManager;
 import com.ethlo.dachs.test.model.Customer;
 import com.ethlo.dachs.test.repository.CustomerRepository;
 
@@ -68,7 +70,7 @@ public class EclipselinkCfg extends JpaBaseConfiguration
         jpaVendorAdapter.setShowSql(false);
         return jpaVendorAdapter;
 	}
-
+	
 	@Override
 	protected Map<String, Object> getVendorProperties()
 	{
@@ -80,22 +82,24 @@ public class EclipselinkCfg extends JpaBaseConfiguration
 	}
 	
 	@Bean
-	public EclipseLinkToSpringContextBridge eclipseLinkToSpringContextBridge(EntityManagerFactory emf, InternalEntityListener internalEntityListener)
+	public static JpaTransactionManager transactionManager(InternalEntityListener internalEntityListener)
 	{
-		final PersistenceUnitUtil persistenceUnitUtil = emf.getPersistenceUnitUtil();
-		final EclipseLinkEntityEventListener handler = new EclipseLinkEntityEventListener(persistenceUnitUtil, internalEntityListener);
-		EclipseLinkToSpringContextBridge.setEntityChangeListener(handler);
-		return new EclipseLinkToSpringContextBridge();
+	    return new NotifyingJpaTransactionManager(internalEntityListener);
 	}
 	
 	@Bean
-	public static JpaTransactionManagerInterceptor transactionManager(EntityManagerFactory emf, EntityChangeSetListener txnListener, EntityChangeListener directListener)
+	public static InternalEntityListener internalEntityListener(EntityManagerFactory emf, EntityChangeSetListener txnListener, EntityChangeListener directListener)
 	{
-		return new JpaTransactionManagerInterceptor(emf, Arrays.asList(txnListener), Arrays.asList(directListener))
+	    final DefaultInternalEntityListener internalEntityListener = new DefaultInternalEntityListener(emf, Arrays.asList(txnListener), Arrays.asList(directListener))
 		    .setLazyIdExtractor(new EclipselinkLazyIdExtractor(emf))
             .setFieldFilter(f->
             {
                 return f.getDeclaredAnnotation(EntityListenerIgnore.class) == null;
             });
+	    
+	    final PersistenceUnitUtil persistenceUnitUtil = emf.getPersistenceUnitUtil();
+        final EclipseLinkEntityEventListener handler = new EclipseLinkEntityEventListener(persistenceUnitUtil, internalEntityListener);
+        EclipseLinkToSpringContextBridge.setEntityChangeListener(handler);
+        return internalEntityListener;
 	}
 }

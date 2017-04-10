@@ -17,6 +17,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -28,7 +29,8 @@ import com.ethlo.dachs.EntityChangeListener;
 import com.ethlo.dachs.EntityChangeSetListener;
 import com.ethlo.dachs.EntityListenerIgnore;
 import com.ethlo.dachs.InternalEntityListener;
-import com.ethlo.dachs.jpa.JpaTransactionManagerInterceptor;
+import com.ethlo.dachs.jpa.DefaultInternalEntityListener;
+import com.ethlo.dachs.jpa.NotifyingJpaTransactionManager;
 import com.ethlo.dachs.test.model.Customer;
 import com.ethlo.dachs.test.repository.CustomerRepository;
 
@@ -45,12 +47,6 @@ public class HibernateCfg extends JpaBaseConfiguration
         super(dataSource, properties, jtaTransactionManager, transactionManagerCustomizers);
     }
 
-    @Bean
-	public HibernatePropertyChangeInterceptor interceptor(InternalEntityListener internalEntityListener)
-	{
-		return new HibernatePropertyChangeInterceptor(internalEntityListener);
-	}
-	
 	@Bean
 	public CollectingEntityChangeSetListener collectingSetListener()
 	{
@@ -69,23 +65,26 @@ public class HibernateCfg extends JpaBaseConfiguration
 		return new HibernateJpaVendorAdapter();
 	}
 	
+    @Bean
+    public static JpaTransactionManager transactionManager(InternalEntityListener internalEntityListener)
+    {
+        return new NotifyingJpaTransactionManager(internalEntityListener);
+    }
+	
 	@Bean
-	public static JpaTransactionManagerInterceptor transactionManager(EntityManagerFactory emf, EntityChangeSetListener txnBoundListener, EntityChangeListener directListener)
+	public static InternalEntityListener internalEntityListener(EntityManagerFactory emf, EntityChangeSetListener txnBoundListener, EntityChangeListener directListener)
 	{
-		return new JpaTransactionManagerInterceptor(emf, Arrays.asList(txnBoundListener), Arrays.asList(directListener))
+	    final InternalEntityListener internalEntityListener = new DefaultInternalEntityListener(emf, Arrays.asList(txnBoundListener), Arrays.asList(directListener))
 		    .setLazyIdExtractor(new HibernateLazyIdExtractor(emf))
             .setFieldFilter(f->
             {
                 return !Modifier.isStatic(f.getModifiers()) 
                        && f.getDeclaredAnnotation(EntityListenerIgnore.class) == null;
             });
-	}
-	
-	@Bean
-	public HibernatePropertyChangeInterceptorBridge bridge(HibernatePropertyChangeInterceptor interceptor)
-	{
-		HibernatePropertyChangeInterceptorBridge.setHibernatePropertyChangeInterceptor(interceptor);
-		return new HibernatePropertyChangeInterceptorBridge();
+	    
+	    HibernatePropertyChangeInterceptorBridge.setHibernatePropertyChangeInterceptor(new HibernatePropertyChangeInterceptor(internalEntityListener));
+	    
+	    return internalEntityListener;
 	}
 
 	@Override

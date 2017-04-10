@@ -26,4 +26,12 @@ public interface InternalEntityListener
 	Predicate<Object> getEntityFilter();
 
     void postFlush(Iterator<Object> entities);
+
+    void begin();
+
+    void beforeCommit();
+
+    void afterCommit();
+    
+    
 }
