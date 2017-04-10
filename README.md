@@ -1,6 +1,6 @@
 # Dachs - Data Change Snitch
 [![Build Status](https://travis-ci.org/ethlo/dachs.svg?branch=master)](https://travis-ci.org/ethlo/dachs)
-[![Maven Central](https://img.shields.io/maven-central/v/com.ethlo.dachs/dachs.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.ethlo.dachs%22%20a%3A%22dachs%22)
+[![Maven Central](https://img.shields.io/maven-central/v/com.ethlo.dachs/dachs.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.ethlo.dachs%22)
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](LICENSE)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9b2a46c2ffdb4c86ad971eec64a06e8b)](https://www.codacy.com/app/ethlo/dachs?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ethlo/dachs&amp;utm_campaign=Badge_Grade)
 
