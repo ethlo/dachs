@@ -54,7 +54,7 @@ public class EntityUtil
 	    {
     		final String fieldName = field.getName();
     		final Object value = ReflectionUtils.getField(field, target);
-    		propChanges.add(new PropertyChange(fieldName, field.getType(), deleted ? value : null, deleted ? null : value, field.getAnnotations()));
+    		propChanges.add(new PropertyChange(fieldName, field.getType(), deleted ? value : null, deleted ? null : value));
 	    }
 	}
 	
@@ -72,7 +72,7 @@ public class EntityUtil
 		if (! Objects.equals(oldValue, newValue))
 		{
 			@SuppressWarnings({ "rawtypes", "unchecked" })
-            final PropertyChange<?> propChange = new PropertyChange(attrName, attrType, oldValue, newValue, field.getAnnotations());
+            final PropertyChange<?> propChange = new PropertyChange(attrName, attrType, oldValue, newValue);
 			propChanges.add(propChange);
 		}
 	}

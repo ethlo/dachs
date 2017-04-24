@@ -69,19 +69,19 @@ public class IdentityUtil
         {
             final Object oldRefColl = transform(type, (Collection<T>)change.getNewValue());
             final Object newRefColl = transform(type, (Collection<T>)change.getOldValue()); 
-            return new PropertyChange(change.getPropertyName(), change.getPropertyType(), oldRefColl, newRefColl, change.getAnnotations());
+            return new PropertyChange(change.getPropertyName(), change.getPropertyType(), oldRefColl, newRefColl);
         }
         else if (Map.class.isAssignableFrom(type))
         {
             final Object oldRefColl = transform(type, (Map)change.getNewValue());
             final Object newRefColl = transform(type, (Map)change.getOldValue()); 
-            return new PropertyChange(change.getPropertyName(), change.getPropertyType(), oldRefColl, newRefColl, change.getAnnotations());
+            return new PropertyChange(change.getPropertyName(), change.getPropertyType(), oldRefColl, newRefColl);
         }
         else if (isEntity(type))
         {
             final Serializable newId = change.getNewValue() != null ? getId(change.getNewValue()) : null;
             final Serializable oldId = change.getOldValue() != null ? getId(change.getOldValue()) : null;
-            return new PropertyChange(change.getPropertyName(), change.getPropertyType(), oldId, newId, change.getAnnotations());
+            return new PropertyChange(change.getPropertyName(), change.getPropertyType(), oldId, newId);
         }
         return change; 
     }

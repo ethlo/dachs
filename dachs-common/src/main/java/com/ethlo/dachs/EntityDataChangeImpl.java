@@ -95,7 +95,7 @@ public class EntityDataChangeImpl implements EntityDataChange
         {
             throw new IllegalArgumentException("id should not be null");
         }
-	    final PropertyChange propChange = new PropertyChange(idPropertyName, id.getClass(), deleted ? id : null, deleted ? null : id, field.getAnnotations());
+	    final PropertyChange propChange = new PropertyChange(idPropertyName, id.getClass(), deleted ? id : null, deleted ? null : id);
 		this.properties.put(idPropertyName, propChange);
 	}
 }

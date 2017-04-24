@@ -78,7 +78,7 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
                     
                 if (field != null && this.fieldFilter.test(field) && !Objects.equals(previousState[i], currentState[i]))
                 {
-                    final PropertyChange changed = new PropertyChange(propertyName, types[i].getReturnedClass(), previousState[i], currentState[i], field.getAnnotations());
+                    final PropertyChange changed = new PropertyChange(propertyName, types[i].getReturnedClass(), previousState[i], currentState[i]);
                     retVal.add(changed);
                 }
             }
@@ -94,7 +94,7 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
                     entityField.setAccessible(true);
                     final Object after = entityField.get(entity);
                     final Object before = after;
-                    final PropertyChange changed = new PropertyChange(fieldName, fieldType, before, after, entityField.getAnnotations());
+                    final PropertyChange changed = new PropertyChange(fieldName, fieldType, before, after);
                     retVal.add(changed);
                 }, 
                 (f)->fieldFilter.test(f));
