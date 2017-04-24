@@ -2,6 +2,7 @@ package com.ethlo.dachs;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 @EntityListenerIgnore
 public class MutableEntityDataChangeSet implements EntityDataChangeSet
@@ -17,7 +18,35 @@ public class MutableEntityDataChangeSet implements EntityDataChangeSet
 		this.deleted = new LinkedList<>();
 	}
 
-	@Override
+	public static EntityDataChangeSet clone(EntityDataChangeSet cs)
+    {
+	    final MutableEntityDataChangeSet e = new MutableEntityDataChangeSet();
+	    e.getCreated().addAll(clone(cs.getCreated()));
+	    e.getUpdated().addAll(clone(cs.getUpdated()));
+	    e.getDeleted().addAll(clone(cs.getDeleted()));
+	    return e;
+    }
+
+    private static Collection<? extends EntityDataChange> clone(Collection<EntityDataChange> l)
+    {
+        return l.stream().map(i->clone(i)).collect(Collectors.toList());
+    }
+
+    private static EntityDataChange clone(EntityDataChange edc)
+    {
+        return new EntityDataChangeImpl(edc.getId(), edc.getEntity(), clonePropChanges(edc.getPropertyChanges()));
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private static Collection<PropertyChange<?>> clonePropChanges(Collection<PropertyChange<?>> propertyChanges)
+    {
+        return propertyChanges
+            .stream()
+            .map(e->new PropertyChange(e.getPropertyName(), e.getPropertyType(), e.getOldValue(), e.getNewValue()))
+            .collect(Collectors.toList());
+    }
+
+    @Override
 	public Collection<EntityDataChange> getCreated()
 	{
 		return created;

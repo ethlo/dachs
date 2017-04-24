@@ -139,7 +139,7 @@ public class DefaultInternalEntityListener implements InternalEntityListener, Se
     		
     		for (EntityChangeSetListener listener : entityChangeSetListeners)
     		{
-    		    listener.preDataChanged(cs);
+    		    listener.preDataChanged(MutableEntityDataChangeSet.clone(cs));
     		}
 		}
 		

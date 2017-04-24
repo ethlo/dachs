@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 import com.ethlo.dachs.util.ReflectionUtil;
 
 /**
- * Allows the specification of a class and field filter for the change events
+ * Allows the specification of an entity and field filter for the change events
  */
 public class DefaultFilteredEntityChangeSetListener implements FilteredEntityChangeSetListener
 {
