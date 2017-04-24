@@ -1,11 +1,8 @@
 package com.ethlo.dachs;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,18 +38,9 @@ public class EntityDataChangeImpl implements EntityDataChange
 	}
 
 	@Override
-	public List<PropertyChange<?>> getPropertyChanges()
+	public Collection<PropertyChange<?>> getPropertyChanges()
 	{
-		final List<PropertyChange<?>> retVal = new ArrayList<>(this.properties.values());
-		Collections.sort(retVal, new Comparator<PropertyChange<?>>()
-        {
-            @Override
-            public int compare(PropertyChange<?> o1, PropertyChange<?> o2)
-            {
-                return o1.getPropertyName().compareTo(o2.getPropertyName());
-            }
-        });
-		return retVal;
+		return properties.values();
 	}
 	
 	@Override
@@ -97,8 +85,17 @@ public class EntityDataChangeImpl implements EntityDataChange
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void prependIdPropertyChange(String idPropertyName, Object id, boolean deleted)
+	public void prependIdPropertyChange(Field field, String idPropertyName, Object id, boolean deleted)
 	{
-		this.properties.put(idPropertyName, new PropertyChange(idPropertyName, id.getClass(), deleted ? id : null, deleted ? null : id));
+	    if (field == null)
+	    {
+	        throw new IllegalArgumentException("field should not be null");
+	    }
+	    if (id == null)
+        {
+            throw new IllegalArgumentException("id should not be null");
+        }
+	    final PropertyChange propChange = new PropertyChange(idPropertyName, id.getClass(), deleted ? id : null, deleted ? null : id, field.getAnnotations());
+		this.properties.put(idPropertyName, propChange);
 	}
 }

@@ -9,9 +9,9 @@ public class ModelTest
     @Test
     public void testPropertyChangeEquals()
     {
-        final PropertyChange<String> a = new PropertyChange<String>("foo", String.class, "bar", "baz");
-        final PropertyChange<String> b = new PropertyChange<String>("foo", String.class, "bar", "baz");
-        final PropertyChange<String> c = new PropertyChange<String>("foo", String.class, "bar", "bad");
+        final PropertyChange<String> a = new PropertyChange<String>("foo", String.class, "bar", "baz", null);
+        final PropertyChange<String> b = new PropertyChange<String>("foo", String.class, "bar", "baz", null);
+        final PropertyChange<String> c = new PropertyChange<String>("foo", String.class, "bar", "bad", null);
         assertThat(a).isEqualTo(b);
         assertThat(b).isEqualTo(a);
         assertThat(a).isNotEqualTo(c);
@@ -21,9 +21,9 @@ public class ModelTest
     @Test
     public void testPropertyChangeHashCode()
     {
-        final PropertyChange<String> a = new PropertyChange<String>("foo", String.class, "bar", "baz");
-        final PropertyChange<String> b = new PropertyChange<String>("foo", String.class, "bar", "baz");
-        final PropertyChange<String> c = new PropertyChange<String>("foo", String.class, "bar", "bad");
+        final PropertyChange<String> a = new PropertyChange<String>("foo", String.class, "bar", "baz", null);
+        final PropertyChange<String> b = new PropertyChange<String>("foo", String.class, "bar", "baz", null);
+        final PropertyChange<String> c = new PropertyChange<String>("foo", String.class, "bar", "bad", null);
         assertThat(a.hashCode()).isEqualTo(b.hashCode());
         assertThat(a.hashCode()).isNotEqualTo(c.hashCode());
     }

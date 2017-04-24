@@ -92,7 +92,7 @@ public class EclipselinkCfg extends JpaBaseConfiguration
 	{
 	    final DefaultInternalEntityListener internalEntityListener = new DefaultInternalEntityListener(emf, Arrays.asList(txnListener), Arrays.asList(directListener))
 		    .setLazyIdExtractor(new EclipselinkLazyIdExtractor(emf))
-            .setFieldFilter(f->
+            .fieldFilter(f->
             {
                 return f.getDeclaredAnnotation(EntityListenerIgnore.class) == null;
             });

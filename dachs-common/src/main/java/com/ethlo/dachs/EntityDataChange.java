@@ -1,7 +1,7 @@
 package com.ethlo.dachs;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -25,7 +25,7 @@ public interface EntityDataChange
 	 * Get all propertyChanges
 	 * @return A list of all property changes for this entity
 	 */
-	List<PropertyChange<?>> getPropertyChanges();
+	Collection<PropertyChange<?>> getPropertyChanges();
 
 	/**
 	 * Get a {@link PropertyChange} for the given propertyName of this entity

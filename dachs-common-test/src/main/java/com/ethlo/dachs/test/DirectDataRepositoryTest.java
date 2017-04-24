@@ -51,7 +51,7 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 		final EntityDataChange created1 = getById(created, Customer.class, firstId.get());
 		assertThat(created1.getId()).isEqualTo(firstId.get());
 		assertThat(created1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
-		final List<PropertyChange<?>> createChanges1 = created1.getPropertyChanges();
+		final List<PropertyChange<?>> createChanges1 = new ArrayList<>(created1.getPropertyChanges());
 		assertThat(createChanges1.size()).isEqualTo(6);
 		assertMatch(createChanges1.get(0), "categories", Map.class, null, Collections.emptyMap());
 		assertMatch(createChanges1.get(1), "firstName", String.class, null, "Jack");
@@ -72,7 +72,7 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 		final EntityDataChange createdM1 = getById(createdM, Customer.class, joeId.get());
 		assertThat(createdM1.getId()).isEqualTo(joeId.get());
 		assertThat(createdM1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
-		final List<PropertyChange<?>> createChangesM1 = createdM1.getPropertyChanges();
+		final List<PropertyChange<?>> createChangesM1 = new ArrayList<>(createdM1.getPropertyChanges());
 		assertThat(createChangesM1.size()).isEqualTo(6);
 		assertMatch(createChangesM1.get(0), "categories", Map.class, null, Collections.emptyMap());
 		assertMatch(createChangesM1.get(1), "firstName", String.class, null, "Joe");
@@ -103,7 +103,7 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 		final EntityDataChange updated1 = getById(updated, Customer.class, 1L);
 		assertThat(updated1.getId()).isEqualTo(1L);
 		assertThat(updated1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
-		final List<PropertyChange<?>> updateChanges1 = updated1.getPropertyChanges();
+		final List<PropertyChange<?>> updateChanges1 = new ArrayList<>(updated1.getPropertyChanges());
 		assertThat(updateChanges1.size()).isEqualTo(2);
 		assertMatch(updateChanges1.get(0), "firstName", String.class, "Hugh", "Hugh_updated");
 		assertMatch(updateChanges1.get(1), "lastName", String.class, "Jackman", "Jackman_updated");
@@ -121,7 +121,7 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 		final EntityDataChange deleted1 = getById(deleted, Customer.class, 1L);
 		assertThat(deleted1.getId()).isEqualTo(1L);
 		assertThat(deleted1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
-		final List<PropertyChange<?>> deleteChanges1 = deleted1.getPropertyChanges();
+		final List<PropertyChange<?>> deleteChanges1 = new ArrayList<>(deleted1.getPropertyChanges());
 		assertThat(deleteChanges1.size()).isEqualTo(6);
 		assertMatch(deleteChanges1.get(0), "categories", Map.class, Collections.emptyMap(), null);
 		assertMatch(deleteChanges1.get(1), "firstName", String.class, "Hugh", null);

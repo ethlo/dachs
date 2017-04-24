@@ -46,8 +46,8 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
 		this.listener = internalEntityListener;
 	    this.entityUtil = new EntityUtil();
 	    
-	    this.entityFilter = internalEntityListener.getEntityFilter();
-	    this.fieldFilter = internalEntityListener.getFieldFilter();
+	    this.entityFilter = internalEntityListener.entityFilter();
+	    this.fieldFilter = internalEntityListener.fieldFilter();
 	}
 	
 	@Override
@@ -98,7 +98,7 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
 			    continue;
 			}
 			
-			entityUtil.extractSingle(attrName, attrType, oldValue, newValue, propChanges);
+			entityUtil.extractSingle(field, attrName, attrType, oldValue, newValue, propChanges);
 		}
 		return propChanges;
 	}

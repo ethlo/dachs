@@ -29,8 +29,8 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
     public HibernatePropertyChangeInterceptor(InternalEntityListener listener)
     {
         this.listener = listener;
-        this.entityFilter = listener.getEntityFilter();
-        this.fieldFilter = listener.getFieldFilter();
+        this.entityFilter = listener.entityFilter();
+        this.fieldFilter = listener.fieldFilter();
     }
 
     @Override
@@ -78,7 +78,7 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
                     
                 if (field != null && this.fieldFilter.test(field) && !Objects.equals(previousState[i], currentState[i]))
                 {
-                    final PropertyChange changed = new PropertyChange(propertyName, types[i].getReturnedClass(), previousState[i], currentState[i]);
+                    final PropertyChange changed = new PropertyChange(propertyName, types[i].getReturnedClass(), previousState[i], currentState[i], field.getAnnotations());
                     retVal.add(changed);
                 }
             }
@@ -94,7 +94,7 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
                     entityField.setAccessible(true);
                     final Object after = entityField.get(entity);
                     final Object before = after;
-                    final PropertyChange changed = new PropertyChange(fieldName, fieldType, before, after);
+                    final PropertyChange changed = new PropertyChange(fieldName, fieldType, before, after, entityField.getAnnotations());
                     retVal.add(changed);
                 }, 
                 (f)->fieldFilter.test(f));

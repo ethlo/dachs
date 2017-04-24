@@ -76,7 +76,7 @@ public class HibernateCfg extends JpaBaseConfiguration
 	{
 	    final InternalEntityListener internalEntityListener = new DefaultInternalEntityListener(emf, Arrays.asList(txnBoundListener), Arrays.asList(directListener))
 		    .setLazyIdExtractor(new HibernateLazyIdExtractor(emf))
-            .setFieldFilter(f->
+            .fieldFilter(f->
             {
                 return !Modifier.isStatic(f.getModifiers()) 
                        && f.getDeclaredAnnotation(EntityListenerIgnore.class) == null;

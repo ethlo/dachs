@@ -10,7 +10,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -83,7 +85,12 @@ public class DefaultInternalEntityListener implements InternalEntityListener, Se
 		this(emf, Collections.emptyList(), Arrays.asList(listeners));
 	}
 	
-	public DefaultInternalEntityListener setFlush(boolean flush)
+	public DefaultInternalEntityListener(EntityManagerFactory emf, List<EntityChangeSetListener> listeners)
+    {
+	    this(emf, listeners, Collections.emptyList());
+    }
+
+    public DefaultInternalEntityListener setFlush(boolean flush)
 	{
 	    this.flush = flush;
 	    return this;
@@ -94,23 +101,23 @@ public class DefaultInternalEntityListener implements InternalEntityListener, Se
         return this.flush;
     }
 	
-	public Predicate<Object> getEntityFilter()
+	public Predicate<Object> entityFilter()
     {
         return entityFilter;
     }
 
-    public DefaultInternalEntityListener setEntityFilter(Predicate<Object> entityFilter)
+    public DefaultInternalEntityListener entityFilter(Predicate<Object> entityFilter)
     {
         this.entityFilter = entityFilter;
         return this;
     }
 
-    public Predicate<Field> getFieldFilter()
+    public Predicate<Field> fieldFilter()
     {
         return fieldFilter;
     }
 
-    public DefaultInternalEntityListener setFieldFilter(Predicate<Field> fieldFilter)
+    public DefaultInternalEntityListener fieldFilter(Predicate<Field> fieldFilter)
     {
         this.fieldFilter = fieldFilter;
         return this;
@@ -207,41 +214,41 @@ public class DefaultInternalEntityListener implements InternalEntityListener, Se
 	    final String[] propertyNames = lazyIdExtractor.extractIdPropertyNames(entity);
 	    Assert.notNull(propertyNames, "propertyNames cannot be null");
 	    
-	    final Map<String, Object> idProperties = getIdProperties(propertyNames, id, entity);
+	    final Map<Field, Object> idProperties = getIdProperties(propertyNames, id, entity);
 	    
-	    for (String propertyName : propertyNames)
+	    for (Entry<Field, Object> e : idProperties.entrySet())
 	    {
-    	    final Optional<PropertyChange<?>> idProp = impl.getPropertyChange(propertyName);
-    	    if (! idProp.isPresent())
+	        final String propName = e.getKey().getName();
+	        final Optional<PropertyChange<?>> idProp = impl.getPropertyChange(propName);
+	        if (! idProp.isPresent())
             {
-    	        final Object value = idProperties.get(propertyName);
-                impl.prependIdPropertyChange(propertyName, value, deleted);
+                impl.prependIdPropertyChange(e.getKey(), propName, e.getValue(), deleted);
             }
 	    }
 	    
 	    impl.setId(id);
     }
 
-    private Map<String, Object> getIdProperties(String[] propertyNames, Serializable id, Object entity)
+    private Map<Field, Object> getIdProperties(String[] propertyNames, Serializable id, Object entity)
     {
         final IdClass idClassAnn = entity.getClass().getAnnotation(IdClass.class);
         final boolean isComposite = idClassAnn != null;
         
         if (! isComposite)
         {
-            return Collections.singletonMap(propertyNames[0], id);
+            return Collections.singletonMap(ReflectionUtils.findField(entity.getClass(), propertyNames[0]), id);
         }
         else
         {
             // We need to extract the id properties from the composite object
-            final Map<String, Object> retVal = new LinkedHashMap<>(propertyNames.length);
+            final Map<Field, Object> retVal = new LinkedHashMap<>(propertyNames.length);
             final Class<?> entityIdClass = idClassAnn.value();
             ReflectionUtils.doWithFields(entityIdClass, (f)->
             {
                 if (! Modifier.isStatic(f.getModifiers()) && fieldFilter.test(f))
                 {
                     final String fieldName = f.getName();
-                    retVal.put(fieldName, ReflectionUtil.get(entity, fieldName));
+                    retVal.put(f, ReflectionUtil.get(entity, fieldName));
                 }
             });
             return retVal;

@@ -54,7 +54,7 @@ public class EntityUtil
 	    {
     		final String fieldName = field.getName();
     		final Object value = ReflectionUtils.getField(field, target);
-    		propChanges.add(new PropertyChange(fieldName, field.getType(), deleted ? value : null, deleted ? null : value));
+    		propChanges.add(new PropertyChange(fieldName, field.getType(), deleted ? value : null, deleted ? null : value, field.getAnnotations()));
 	    }
 	}
 	
@@ -67,12 +67,12 @@ public class EntityUtil
 	    return false;
     }
 
-    public void extractSingle(String attrName, Class<?> attrType, Object oldValue, Object newValue, List<PropertyChange<?>> propChanges)
+    public void extractSingle(Field field, String attrName, Class<?> attrType, Object oldValue, Object newValue, List<PropertyChange<?>> propChanges)
 	{
 		if (! Objects.equals(oldValue, newValue))
 		{
 			@SuppressWarnings({ "rawtypes", "unchecked" })
-            final PropertyChange<?> propChange = new PropertyChange(attrName, attrType, oldValue, newValue);
+            final PropertyChange<?> propChange = new PropertyChange(attrName, attrType, oldValue, newValue, field.getAnnotations());
 			propChanges.add(propChange);
 		}
 	}

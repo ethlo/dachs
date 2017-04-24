@@ -1,9 +1,13 @@
 package com.ethlo.dachs;
 
+import java.lang.annotation.Annotation;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class PropertyChange<T>
 {
+    private Map<String, Annotation> annotations;
 	private String propertyName;
 	private Class<T> propertyType;
 	private T oldValue;
@@ -15,7 +19,7 @@ public class PropertyChange<T>
 		
 	}
 	
-	public PropertyChange(String propertyName, Class<T> propertyType, T oldValue, T newValue)
+	public PropertyChange(String propertyName, Class<T> propertyType, T oldValue, T newValue, Annotation[] annotations)
 	{
 		if (propertyName == null)
 		{
@@ -29,6 +33,15 @@ public class PropertyChange<T>
 		this.propertyType = propertyType;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
+		
+		if (annotations != null)
+		{
+    		this.annotations = new HashMap<>(annotations.length);
+    		for (Annotation ann : annotations)
+    		{
+    		    this.annotations.put(ann.annotationType().getCanonicalName(), ann);
+    		}
+		}
 	}
 
 	public String getPropertyName()
@@ -81,5 +94,17 @@ public class PropertyChange<T>
     public String toString()
     {
         return "PropertyChange [propertyName=" + propertyName + ", entityType=" + propertyType + ", oldValue=" + oldValue + ", newValue=" + newValue + "]";
+    }
+
+    public boolean hasAnnotation(Class<? extends Annotation> annotationType)
+    {
+        final String annName = annotationType.getCanonicalName();
+        final boolean contains = annotations != null && annotations.get(annName) != null;
+        return contains;
+    }
+
+    public Annotation[] getAnnotations()
+    {
+        return annotations != null ? annotations.values().toArray(new Annotation[annotations.size()]) : null; 
     }
 }

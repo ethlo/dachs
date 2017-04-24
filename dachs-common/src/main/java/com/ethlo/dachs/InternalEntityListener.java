@@ -21,9 +21,9 @@ public interface InternalEntityListener
 	
 	void deleted(EntityDataChange entityData);
 	
-	Predicate<Field> getFieldFilter();
+	Predicate<Field> fieldFilter();
 	
-	Predicate<Object> getEntityFilter();
+	Predicate<Object> entityFilter();
 
     void postFlush(Iterator<Object> entities);
 
