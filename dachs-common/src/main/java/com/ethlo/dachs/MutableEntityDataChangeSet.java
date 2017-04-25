@@ -44,9 +44,15 @@ public class MutableEntityDataChangeSet implements EntityDataChangeSet
         final List<PropertyChange<?>> r = new ArrayList<>();
         propertyChanges
             .stream()
-            .forEach(e->r.add(e.copy()));
+            .forEach(e->r.add(copy(e)));
         return r;
     }
+    
+    private static PropertyChange copy(PropertyChange<?> e)
+    {
+        return new PropertyChange(e.getPropertyName(), e.getPropertyType(), e.getOldValue(), e.getNewValue());
+    }
+
 
     @Override
 	public Collection<EntityDataChange> getCreated()

@@ -82,9 +82,4 @@ public class PropertyChange<T>
     {
         return "PropertyChange [propertyName=" + propertyName + ", entityType=" + propertyType + ", oldValue=" + oldValue + ", newValue=" + newValue + "]";
     }
-
-    public PropertyChange copy()
-    {
-        return new PropertyChange(getPropertyName(), getPropertyType(), getOldValue(), getNewValue());
-    }
 }
