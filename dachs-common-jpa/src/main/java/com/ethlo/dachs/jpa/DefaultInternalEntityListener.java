@@ -71,8 +71,8 @@ public class DefaultInternalEntityListener implements InternalEntityListener, Se
 	public DefaultInternalEntityListener(EntityManagerFactory emf, Collection<EntityChangeSetListener> setListeners, Collection<EntityChangeListener> listeners)
 	{
 	    this.emf = emf;
-		this.entityChangeSetListeners = new LinkedHashSet<>(setListeners);
-		this.entityChangeListeners = new LinkedHashSet<>(listeners);
+		this.entityChangeSetListeners = setListeners != null ? new LinkedHashSet<>(setListeners) : Collections.emptySet();
+		this.entityChangeListeners = listeners != null ? new LinkedHashSet<>(listeners) : Collections.emptySet();
 	}
 
 	public DefaultInternalEntityListener(EntityManagerFactory emf, EntityChangeSetListener... setListeners)

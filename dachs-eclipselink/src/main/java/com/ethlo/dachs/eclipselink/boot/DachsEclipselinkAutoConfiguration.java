@@ -8,6 +8,7 @@ import javax.persistence.PersistenceUnitUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -28,8 +29,15 @@ import com.ethlo.dachs.jpa.NotifyingJpaTransactionManager;
 @AutoConfigureBefore(TransactionAutoConfiguration.class)
 public class DachsEclipselinkAutoConfiguration
 {
+    @Autowired(required=false)
+    private List<EntityChangeSetListener> txnListeners;
+    
+    @Autowired(required=false)
+    private List<EntityChangeListener> listeners;
+    
+    @ConditionalOnMissingBean(value=InternalEntityListener.class)
     @Bean
-    public static InternalEntityListener internalEntityListener(EntityManagerFactory emf, @Autowired(required=false) List<EntityChangeSetListener> txnListeners, @Autowired(required=false) List<EntityChangeListener> listeners)
+    public InternalEntityListener internalEntityListener(EntityManagerFactory emf)
     {
         final DefaultInternalEntityListener internalEntityListener = new DefaultInternalEntityListener(emf, txnListeners, listeners)
             .setLazyIdExtractor(new EclipselinkLazyIdExtractor(emf))
@@ -46,6 +54,7 @@ public class DachsEclipselinkAutoConfiguration
         return internalEntityListener;
     }
     
+    @ConditionalOnMissingBean(value=NotifyingJpaTransactionManager.class)
     @Bean
     public static NotifyingJpaTransactionManager transactionManager(InternalEntityListener internalEntityListener)
     {
