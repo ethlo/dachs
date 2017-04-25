@@ -1,7 +1,9 @@
 package com.ethlo.dachs;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @EntityListenerIgnore
@@ -37,13 +39,13 @@ public class MutableEntityDataChangeSet implements EntityDataChangeSet
         return new EntityDataChangeImpl(edc.getId(), edc.getEntity(), clonePropChanges(edc.getPropertyChanges()));
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     private static Collection<PropertyChange<?>> clonePropChanges(Collection<PropertyChange<?>> propertyChanges)
     {
-        return propertyChanges
+        final List<PropertyChange<?>> r = new ArrayList<>();
+        propertyChanges
             .stream()
-            .map(e->new PropertyChange(e.getPropertyName(), e.getPropertyType(), e.getOldValue(), e.getNewValue()))
-            .collect(Collectors.toList());
+            .forEach(e->r.add(e.copy()));
+        return r;
     }
 
     @Override
