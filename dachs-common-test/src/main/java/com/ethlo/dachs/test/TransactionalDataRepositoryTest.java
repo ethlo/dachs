@@ -200,6 +200,6 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 			}
 			return null;
 		});
-		assertThat(iterations).isEqualTo(listener.getPostDataChangeSet().getCreated().size());
+		assertThat(listener.getPostDataChangeSet().getCreated().size()).isEqualTo(iterations);
 	}
 }
