@@ -37,18 +37,6 @@ public class EclipselinkCfg extends JpaBaseConfiguration
     {
         super(dataSource, properties, jtaTransactionManager, transactionManagerCustomizers);
     }
-
-    @Bean
-	public CollectingEntityChangeSetListener collectingSetListener()
-	{
-		return new CollectingEntityChangeSetListener();
-	}
-	
-	@Bean
-	public CollectingEntityChangeListener collectingListener()
-	{
-		return new CollectingEntityChangeListener();
-	}
 	
 	@Override
 	protected AbstractJpaVendorAdapter createJpaVendorAdapter()
@@ -64,4 +52,16 @@ public class EclipselinkCfg extends JpaBaseConfiguration
 		retVal.put(PersistenceUnitProperties.DDL_GENERATION, "create-tables");
 		return retVal;
 	}
+	
+    @Bean
+    public CollectingEntityChangeSetListener collectingSetListener()
+    {
+        return new CollectingEntityChangeSetListener();
+    }
+    
+    @Bean
+    public CollectingEntityChangeListener collectingListener()
+    {
+        return new CollectingEntityChangeListener();
+    }
 }
