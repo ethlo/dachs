@@ -84,9 +84,4 @@ public class DefaultFilteredEntityChangeSetListener implements FilteredEntityCha
         filter(changeset);
         delegate.postDataChanged(changeset);
     }
-
-    public void begin()
-    {
-        delegate.begin();
-    }
 }

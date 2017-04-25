@@ -16,9 +16,4 @@ public interface EntityChangeSetListener
      * @param changeset The change set
      */
 	void postDataChanged(EntityDataChangeSet changeset);
-
-	/**
-     * Triggered when a transaction begins
-     */
-	void begin();
 }

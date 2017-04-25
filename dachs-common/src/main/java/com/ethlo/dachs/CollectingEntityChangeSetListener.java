@@ -20,13 +20,6 @@ public class CollectingEntityChangeSetListener implements EntityChangeSetListene
 		this.postDataChangeSet = changeset;
 	}
 
-	@Override
-	public void begin()
-	{
-		this.preDataChangeSet = null;
-		this.postDataChangeSet = null;
-	}
-
 	public EntityDataChangeSet getPreDataChangeSet()
 	{
 		return preDataChangeSet != null ? preDataChangeSet : new MutableEntityDataChangeSet();
@@ -39,6 +32,7 @@ public class CollectingEntityChangeSetListener implements EntityChangeSetListene
 
 	public void clear()
 	{
-		begin();
+	    this.preDataChangeSet = null;
+        this.postDataChangeSet = null;
 	}
 }

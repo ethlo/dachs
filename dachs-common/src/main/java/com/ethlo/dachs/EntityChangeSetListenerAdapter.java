@@ -16,10 +16,4 @@ public abstract class EntityChangeSetListenerAdapter implements EntityChangeSetL
     {
         // Empty implementation        
     }
-
-    @Override
-    public void begin()
-    {
-        // Empty implementation
-    }
 }

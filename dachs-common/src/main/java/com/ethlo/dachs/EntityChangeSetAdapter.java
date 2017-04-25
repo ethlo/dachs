@@ -10,7 +10,4 @@ public class EntityChangeSetAdapter implements EntityChangeSetListener
 
 	@Override
 	public void postDataChanged(EntityDataChangeSet changeset) {}
-
-	@Override
-	public void begin() {}
 }

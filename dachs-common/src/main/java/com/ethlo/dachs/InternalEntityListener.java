@@ -27,11 +27,9 @@ public interface InternalEntityListener
 
     void postFlush(Iterator<Object> entities);
 
-    void begin();
-
     void beforeCommit();
 
     void afterCommit();
-    
-    
+
+    void cleanup();
 }

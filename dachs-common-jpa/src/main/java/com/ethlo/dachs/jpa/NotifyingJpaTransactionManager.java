@@ -1,7 +1,6 @@
 package com.ethlo.dachs.jpa;
 
 import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.util.Assert;
 
@@ -17,13 +16,6 @@ public class NotifyingJpaTransactionManager extends JpaTransactionManager
         Assert.notNull(internalEntityListener, "internalEntityListener cannot be null");
         this.listener = internalEntityListener;
     }
-    
-    @Override
-    protected void doBegin(Object transaction, TransactionDefinition definition)
-    {
-        super.doBegin(transaction, definition);
-        listener.begin();
-    }
 
     @Override
     protected void doCommit(DefaultTransactionStatus status)
@@ -31,5 +23,12 @@ public class NotifyingJpaTransactionManager extends JpaTransactionManager
         listener.beforeCommit();
         super.doCommit(status);
         listener.afterCommit();
+    }
+
+    @Override
+    protected void doCleanupAfterCompletion(Object transaction)
+    {
+        super.doCleanupAfterCompletion(transaction);
+        listener.cleanup();
     }
 }

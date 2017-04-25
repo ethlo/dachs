@@ -388,14 +388,9 @@ public class DefaultInternalEntityListener implements InternalEntityListener, Se
     }
     
     @Override
-    public void begin()
+    public void cleanup()
     {
         preChangeset.remove();
         postChangeset.remove();
-        
-        for (EntityChangeSetListener listener : entityChangeSetListeners)
-        {
-            listener.begin();
-        }
     }
 }
