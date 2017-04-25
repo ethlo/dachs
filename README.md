@@ -4,9 +4,7 @@
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](LICENSE)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9b2a46c2ffdb4c86ad971eec64a06e8b)](https://www.codacy.com/app/ethlo/dachs?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ethlo/dachs&amp;utm_campaign=Badge_Grade)
 
-### Goal
-
-To have a _unified_ entity change-listener across different persistence APIs and implementations.
+A _unified_ entity change-listener across different persistence APIs and implementations.
 
 ### Rationale
 
