@@ -27,7 +27,7 @@ All the different persistence frameworks have their different APIs for detecting
 ```
 
 ### Supported persistence frameworks
-* Eclipselink
+* [Eclipselink - Setup guide](dachs-eclipselink)
 * Hibernate
 
 ### API
