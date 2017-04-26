@@ -40,9 +40,8 @@ This listener will buffer all events until the transaction is about to commit. `
 ```java
 public interface EntityChangeSetListener
 {
-	void preDataChanged(EntityDataChangeSet changeset);
-	void postDataChanged(EntityDataChangeSet changeset);
-	void begin();
+  void preDataChanged(EntityDataChangeSet changeset);
+  void postDataChanged(EntityDataChangeSet changeset);
 }
 ```
 
@@ -50,10 +49,10 @@ Both methods gives you an [`EntityDataChangeSet`](https://github.com/ethlo/dachs
 ```java
 public interface EntityDataChangeSet
 {
-	List<EntityDataChange> getCreated();
-	List<EntityDataChange> getUpdated();
-	List<EntityDataChange> getDeleted();
-	boolean isEmpty();
+  List<EntityDataChange> getCreated();
+  List<EntityDataChange> getUpdated();
+  List<EntityDataChange> getDeleted();
+  boolean isEmpty();
 }
 ```
 
@@ -63,12 +62,12 @@ public interface EntityDataChangeSet
 ```java
 public interface EntityChangeListener
 {
-	void preCreate(EntityDataChange entityData);
-	void preUpdate(EntityDataChange entityData);
-	void preDelete(EntityDataChange entityData);
-	void created(EntityDataChange entityData);
-	void updated(EntityDataChange entityData);
-	void deleted(EntityDataChange entityData);
+  void preCreate(EntityDataChange entityData);
+  void preUpdate(EntityDataChange entityData);
+  void preDelete(EntityDataChange entityData);
+  void created(EntityDataChange entityData);
+  void updated(EntityDataChange entityData);
+  void deleted(EntityDataChange entityData);
 }
 ```
 
@@ -78,10 +77,10 @@ Using this simple listener, we get an [`EntityDataChange`](https://github.com/et
 ```java
 public interface EntityDataChange
 {
-	Serializable getId();
-	Object getEntity();
-	List<PropertyChange<?>> getPropertyChanges();
-	Optional<PropertyChange<?>> getPropertyChange(String propertyName);
+  Serializable getId();
+  Object getEntity();
+  List<PropertyChange<?>> getPropertyChanges();
+  Optional<PropertyChange<?>> getPropertyChange(String propertyName);
 }
 ```
 
@@ -90,10 +89,10 @@ Each `EntityDataChange` object holds a collection of [`PropertyChange`s](https:/
 ```java
 public interface PropertyChange<T>
 {
-	String getPropertyName();
-	Class<T> getPropertyType();
-	T getOldValue();
-	T getNewValue();
+  String getPropertyName();
+  Class<T> getPropertyType();
+  T getOldValue();
+  T getNewValue();
 }
 ```
 #### Example output
@@ -103,33 +102,33 @@ Given a simple Person object:
 ```java
 public class Person()
 {
-	private String name;
-	private Integer age;
+  private String name;
+  private Integer age;
 }
 ```
 
 ##### Created
 ```
 EntityData
-	propertyChanges:
-		* name - null => "John Doe"
-		* age - null => 34
+  propertyChanges:
+    * name - null => "John Doe"
+    * age - null => 34
 ```
 
 ##### Updated
 ```
 EntityData
-	propertyChanges:
-		* name - "John Doe" => "John Smith"
-		* age - 34 => 47
+  propertyChanges:
+    * name - "John Doe" => "John Smith"
+    * age - 34 => 47
 ```
 
 ##### Deleted
 ```
 EntityData
-	propertyChanges:
-		* name - "John Smith" => null
-		* age - 47 => null
+  propertyChanges:
+    * name - "John Smith" => null
+    * age - 47 => null
 ```
 
 ### Limitations
