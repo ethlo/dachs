@@ -1,34 +1,35 @@
-###dachs-eclipselink
+# dachs-eclipselink
 
-This module is for Eclipselink.
+This the the [Dachs](https://github.com/ethlo/dachs) module for EclipseLink.
 
-####Installation
+## Setup
 
-Add dependency to this module in your `pom.xml`:
 
+### 1. Add dependency
 ```xml
 <dependency>
   <groupId>com.ethlo.dachs</groupId>
   <artifactId>dachs-eclipselink</artifactId>
-  <version>[]</version>
+  <version>${dachs.version}</version>
 </dependecy>
 ```
 
-Configure Eclipselink with Dachs:
+### 2. Enable automatic configuration using Spring Boot
+```properties
+spring.jpa.properties.eclipselink.session.customizer=com.ethlo.dachs.eclipselink.DachsSessionCustomizer
+```
+
+### 3. Register one or more listeners
 ```java
 @Bean
-public EntityListener entityListener()
+public EntityChangeSetListener entityChangeSetListener()
 {
-  	// Configure _your_ listener here!
-	return new MyEntityListener();
+	return new EntityChangeSetAdapter()
+	{
+		@Override
+		public void postDataChanged(EntityDataChangeSet changes)
+		{
+			// Will be triggered after commit
+		}
+	}
 }
-
-@Bean
-public EclipseLinkToSpringContextBridge eclipseLinkToSpringContextBridge(EntityManagerFactory emf)
-{
-	final PersistenceUnitUtil persistenceUnitUtil = emf.getPersistenceUnitUtil();
-	final EclipseLinkAuditingLoggerHandler handler = new EclipseLinkAuditingLoggerHandler(persistenceUnitUtil, entityListener);
-	EclipseLinkToSpringContextBridge.setEntityChangeListener(handler);
-	return new EclipseLinkToSpringContextBridge();
-}
-```
