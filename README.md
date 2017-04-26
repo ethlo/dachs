@@ -28,7 +28,7 @@ All the different persistence frameworks have their different APIs for detecting
 
 ### Supported persistence frameworks
 * [Eclipselink - Setup guide](dachs-eclipselink)
-* [Hibernate - Setup guide](hibernate-eclipselink)
+* [Hibernate - Setup guide](dachs-hibernate)
 
 ### API
 The goal is to have a simple, but powerful API to get notifications of all changes to entities, that is `created`, `updated` and `deleted`.
