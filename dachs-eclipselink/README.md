@@ -33,3 +33,11 @@ public EntityChangeSetListener entityChangeSetListener()
 		}
 	}
 }
+```
+
+### Tips
+
+#### Auditing and logging of changes
+For auditing purposes, one normally is not interested in an entity's related entities. For example when updating an order that has a reference to a product, we do not want to traverse and log the prodduct entity, we just want to know that the order now references it. 
+
+To serialize these changes (and avoiding a huge, potentially recursive graph), Dachs supports `IdentityUtil.toIndentityReferences(Collection<EntityDataChange> list)`
