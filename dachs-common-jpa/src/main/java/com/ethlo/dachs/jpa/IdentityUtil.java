@@ -67,14 +67,14 @@ public class IdentityUtil
         final Class<?> type = change.getPropertyType();
         if (Collection.class.isAssignableFrom(type))
         {
-            final Object oldRefColl = transform(type, (Collection<T>)change.getNewValue());
-            final Object newRefColl = transform(type, (Collection<T>)change.getOldValue()); 
+            final Object oldRefColl = transform(type, change.getOldValue());
+            final Object newRefColl = transform(type, change.getNewValue());
             return new PropertyChange(change.getPropertyName(), change.getPropertyType(), oldRefColl, newRefColl);
         }
         else if (Map.class.isAssignableFrom(type))
         {
-            final Object oldRefColl = transform(type, (Map)change.getNewValue());
-            final Object newRefColl = transform(type, (Map)change.getOldValue()); 
+            final Object oldRefColl = transform(type, change.getOldValue());
+            final Object newRefColl = transform(type, change.getNewValue());
             return new PropertyChange(change.getPropertyName(), change.getPropertyType(), oldRefColl, newRefColl);
         }
         else if (isEntity(type))
