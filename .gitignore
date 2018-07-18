@@ -5,3 +5,5 @@ target
 .classpath
 .springBeans
 pom.xml.versionsBackup
+*.iml
+.idea

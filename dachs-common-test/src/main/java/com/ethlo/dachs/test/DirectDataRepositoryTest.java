@@ -1,6 +1,6 @@
 package com.ethlo.dachs.test;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -85,14 +85,14 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 	@Test
 	public void testUpdateNoChanges()
 	{
-		customerRepository.findOne(1L);
+		customerRepository.findById(1L);
 		assertThat(true).isTrue();
 	}
 	
 	@Test
 	public void testUpdate()
 	{
-		final Customer existing1 = customerRepository.findOne(1L);
+		final Customer existing1 = customerRepository.findById(1L).get();
 		existing1.setFirstName(existing1.getFirstName() + "_updated");
 		existing1.setLastName(existing1.getLastName() + "_updated");
 		customerRepository.save(existing1);
@@ -112,7 +112,7 @@ public class DirectDataRepositoryTest extends AbstractDataRepositoryTest
 	@Test
 	public void testDelete()
 	{
-		final Customer existing1 = customerRepository.findOne(1L);
+		final Customer existing1 = customerRepository.findById(1L).get();
 		customerRepository.delete(existing1);
 		
 		final List<EntityDataChange> deleted = listener.getPostDeleted();

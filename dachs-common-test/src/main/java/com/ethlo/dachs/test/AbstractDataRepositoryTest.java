@@ -1,6 +1,6 @@
 package com.ethlo.dachs.test;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -40,7 +40,7 @@ public class AbstractDataRepositoryTest
     protected CallRepository callRepository;
 
     protected TransactionTemplate txTpl;
-	
+
 	@Before
 	public void txnTpl()
 	{

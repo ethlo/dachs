@@ -1,6 +1,6 @@
 package com.ethlo.dachs.test;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -133,7 +133,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 		txTpl.execute(t->
 		{
 			// Just load an entity, do not perform any changes
-			customerRepository.findOne(1L);
+			customerRepository.findById(1L);
 			return null;
 		});
 	}		
@@ -143,7 +143,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 	{
 		txTpl.execute(t->
 		{
-			final Customer existing1 = customerRepository.findOne(1L);
+			final Customer existing1 = customerRepository.findById(1L).get();
 			existing1.setFirstName(existing1.getFirstName() + "_updated");
 			existing1.setLastName(existing1.getLastName() + "_updated");
 			return null;
@@ -166,7 +166,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
 	{
 		txTpl.execute(t->
 		{
-			final Customer existing1 = customerRepository.findOne(1L);
+			final Customer existing1 = customerRepository.findById(1L).get();
 			customerRepository.delete(existing1);
 			return null;
 		});

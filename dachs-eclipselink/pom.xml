@@ -17,8 +17,9 @@
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>eclipselink</artifactId>
-			<version>2.6.4</version>
+			<artifactId>org.eclipse.persistence.jpa</artifactId>
+			<version>2.7.2</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.ethlo.dachs</groupId>
@@ -51,9 +52,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.hibernate</groupId>
+			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
