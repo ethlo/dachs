@@ -32,4 +32,6 @@ public interface InternalEntityListener
     void afterCommit();
 
     void cleanup();
+
+	void rollback();
 }

@@ -31,4 +31,11 @@ public class NotifyingJpaTransactionManager extends JpaTransactionManager
         super.doCleanupAfterCompletion(transaction);
         listener.cleanup();
     }
+
+    @Override
+    protected void doRollback(final DefaultTransactionStatus status)
+    {
+        super.doRollback(status);
+        listener.rollback();
+    }
 }

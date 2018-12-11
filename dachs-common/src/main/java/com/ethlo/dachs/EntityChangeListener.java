@@ -20,4 +20,10 @@ public interface EntityChangeListener
 	void updated(EntityDataChange entityData);
 	
 	void deleted(EntityDataChange entityData);
+
+    void rolledBackCreated(EntityDataChange e);
+
+	void rolledBackUpdated(EntityDataChange e);
+
+	void rolledBackDeleted(EntityDataChange e);
 }

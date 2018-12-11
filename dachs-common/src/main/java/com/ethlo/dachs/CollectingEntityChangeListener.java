@@ -14,6 +14,9 @@ public class CollectingEntityChangeListener implements EntityChangeListener
 	private List<EntityDataChange> postUpdated = new LinkedList<>();
 	private List<EntityDataChange> preDeleted = new LinkedList<>();
 	private List<EntityDataChange> postDeleted = new LinkedList<>();
+	private List<EntityDataChange> rollbackCreated = new LinkedList<>();
+	private List<EntityDataChange> rollbackUpdated = new LinkedList<>();
+	private List<EntityDataChange> rollbackDeleted = new LinkedList<>();
 	
 	@Override
 	public void preCreate(EntityDataChange entityData)
@@ -50,7 +53,25 @@ public class CollectingEntityChangeListener implements EntityChangeListener
 	{
 		this.postDeleted.add(entityData);
 	}
-	
+
+	@Override
+	public void rolledBackCreated(final EntityDataChange e)
+	{
+		rollbackCreated.add(e);
+	}
+
+	@Override
+	public void rolledBackUpdated(final EntityDataChange e)
+	{
+		rollbackUpdated.add(e);
+	}
+
+	@Override
+	public void rolledBackDeleted(final EntityDataChange e)
+	{
+		rolledBackDeleted(e);
+	}
+
 	public void clear()
 	{
 		this.preCreated.clear();
@@ -89,5 +110,20 @@ public class CollectingEntityChangeListener implements EntityChangeListener
 	public List<EntityDataChange> getPostDeleted()
 	{
 		return postDeleted;
+	}
+
+	public List<EntityDataChange> getRollbackCreated()
+	{
+		return rollbackCreated;
+	}
+
+	public List<EntityDataChange> getRollbackUpdated()
+	{
+		return rollbackUpdated;
+	}
+
+	public List<EntityDataChange> getRollbackDeleted()
+	{
+		return rollbackDeleted;
 	}
 }

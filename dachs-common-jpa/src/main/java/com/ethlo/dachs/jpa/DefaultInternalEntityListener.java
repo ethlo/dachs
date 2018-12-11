@@ -393,4 +393,28 @@ public class DefaultInternalEntityListener implements InternalEntityListener, Se
         preChangeset.remove();
         postChangeset.remove();
     }
+
+	@Override
+	public void rollback()
+	{
+		final MutableEntityDataChangeSet preCs = preChangeset.get();
+		final MutableEntityDataChangeSet postCs = postChangeset.get();
+		for (EntityChangeListener listener : this.entityChangeListeners)
+		{
+			for (EntityDataChange e : preCs.getCreated())
+			{
+				listener.rolledBackCreated(e);
+			}
+
+			for (EntityDataChange e : preCs.getUpdated())
+			{
+				listener.rolledBackUpdated(e);
+			}
+
+			for (EntityDataChange e : preCs.getDeleted())
+			{
+				listener.rolledBackDeleted(e);
+			}
+		}
+	}
 }

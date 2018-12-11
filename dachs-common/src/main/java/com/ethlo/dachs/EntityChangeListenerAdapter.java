@@ -21,6 +21,24 @@ public class EntityChangeListenerAdapter implements EntityChangeListener
 	}
 
 	@Override
+	public void rolledBackCreated(final EntityDataChange e)
+	{
+
+	}
+
+	@Override
+	public void rolledBackUpdated(final EntityDataChange e)
+	{
+
+	}
+
+	@Override
+	public void rolledBackDeleted(final EntityDataChange e)
+	{
+
+	}
+
+	@Override
 	public void preCreate(EntityDataChange entityData)
 	{
 	}
