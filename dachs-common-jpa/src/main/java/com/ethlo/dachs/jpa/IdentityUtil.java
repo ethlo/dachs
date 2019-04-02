@@ -35,12 +35,7 @@ public class IdentityUtil
     public Collection<EntityDataChange> toIndentityReferences(Collection<EntityDataChange> list)
     {
         return list.stream().map((entityData)->
-        {
-            return new EntityDataChangeImpl(entityData.getId(), entityData.getEntity(), entityData.getPropertyChanges().stream().map((change)->
-            {
-                return transform(change);
-            }).collect(Collectors.toList()));
-        }).collect(Collectors.toList());
+                new EntityDataChangeImpl(entityData.getId(), entityData.getEntity(), entityData.getPropertyChanges().stream().map(this::transform).collect(Collectors.toList()))).collect(Collectors.toList());
     }    
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -93,7 +88,7 @@ public class IdentityUtil
             return null;
         }
         final List<Object> tmp = new LinkedList<>();
-        coll.forEach(e->{tmp.add(transform(e.getClass(), e));});
+        coll.forEach(e-> tmp.add(transform(e.getClass(), e)));
         return tmp;
     }
     
@@ -104,10 +99,7 @@ public class IdentityUtil
             return null;
         }
         final Map<Object, Object> tmp = new LinkedHashMap<>();
-        map.entrySet().forEach(e->
-        {
-            tmp.put(e.getKey(), transform(e.getValue().getClass(), e.getValue()));
-        });
+        map.forEach((key, value) -> tmp.put(key, transform(value.getClass(), value)));
         return tmp;
     }
 

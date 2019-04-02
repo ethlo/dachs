@@ -20,22 +20,22 @@ public class NotifyingJpaTransactionManager extends JpaTransactionManager
     @Override
     protected void doCommit(DefaultTransactionStatus status)
     {
-        listener.beforeCommit();
+        listener.beforeCommit(status);
         super.doCommit(status);
-        listener.afterCommit();
+        listener.afterCommit(status);
     }
 
     @Override
     protected void doCleanupAfterCompletion(Object transaction)
     {
         super.doCleanupAfterCompletion(transaction);
-        listener.cleanup();
+        listener.cleanup(transaction);
     }
 
     @Override
     protected void doRollback(final DefaultTransactionStatus status)
     {
         super.doRollback(status);
-        listener.rollback();
+        listener.rollback(status);
     }
 }

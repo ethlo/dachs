@@ -22,9 +22,9 @@ public class HibernatePropertyChangeInterceptor extends EmptyInterceptor
 {
     private static final long serialVersionUID = 4618098551981894684L;
 
-    private InternalEntityListener listener;
-    private Predicate<Object> entityFilter;
-    private Predicate<Field> fieldFilter;
+    private final InternalEntityListener listener;
+    private final Predicate<Object> entityFilter;
+    private final Predicate<Field> fieldFilter;
 
     public HibernatePropertyChangeInterceptor(InternalEntityListener listener)
     {

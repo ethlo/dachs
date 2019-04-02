@@ -38,18 +38,18 @@ public class Customer
     
     @CollectionTable(name="customer_tags")
     @ElementCollection(fetch=FetchType.EAGER)
-    private Set<String> tags = new HashSet<>();
+    private final Set<String> tags = new HashSet<>();
     
     @OneToMany(mappedBy = "customer", cascade = ALL, orphanRemoval = true)
     @MapKey(name = "name")
-    private Map<String, Category> categories = new HashMap<>();
+    private final Map<String, Category> categories = new HashMap<>();
     
     @Version
     @EntityListenerIgnore
     private Integer version;
     
     @OneToMany(targetEntity=ProductOrder.class, cascade=CascadeType.ALL)
-    private List<ProductOrder> orders = new ArrayList<>();
+    private final List<ProductOrder> orders = new ArrayList<>();
     
     protected Customer() {}
 

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -22,8 +23,8 @@ import com.ethlo.dachs.LazyIdExtractor;
  */
 public class EclipselinkLazyIdExtractor implements LazyIdExtractor
 {
-	private PersistenceUnitUtil persistenceUnitUtil;
-    private EntityManagerFactory emf;
+	private final PersistenceUnitUtil persistenceUnitUtil;
+    private final EntityManagerFactory emf;
 
 	public EclipselinkLazyIdExtractor(EntityManagerFactory emf)
 	{
@@ -41,7 +42,7 @@ public class EclipselinkLazyIdExtractor implements LazyIdExtractor
 	public String[] extractIdPropertyNames(Object entity)
 	{
 	    final EntityManager em = EntityManagerFactoryUtils.getTransactionalEntityManager(emf);
-	    final ClassDescriptor desc = em.unwrap(JpaEntityManager.class).getServerSession().getClassDescriptor(entity);
+	    final ClassDescriptor desc = Objects.requireNonNull(em).unwrap(JpaEntityManager.class).getServerSession().getClassDescriptor(entity);
 	    if (desc != null)
 	    {
     	    final Collection<DatabaseMapping> fieldNames = desc.getMappings();

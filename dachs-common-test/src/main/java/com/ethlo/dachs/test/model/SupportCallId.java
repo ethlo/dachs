@@ -70,11 +70,8 @@ public class SupportCallId implements Serializable
             return false;
         if (customer == null)
         {
-            if (other.customer != null)
-                return false;
+            return other.customer == null;
         }
-        else if (!customer.equals(other.customer))
-            return false;
-        return true;
+        else return customer.equals(other.customer);
     }
 }

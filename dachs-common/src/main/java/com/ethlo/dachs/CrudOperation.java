@@ -7,9 +7,9 @@ public enum CrudOperation
 {
 	CREATE('c'), READ('r'), UPDATE('u'), DELETE('d'), DISABLE('x');
 	
-	private char id;
+	private final char id;
 
-	private CrudOperation(char id)
+	CrudOperation(char id)
 	{
 		this.id = id;
 	}

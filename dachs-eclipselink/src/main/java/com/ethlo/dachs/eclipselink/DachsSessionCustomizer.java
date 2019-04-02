@@ -8,11 +8,12 @@ import org.eclipse.persistence.sessions.Session;
 
 public class DachsSessionCustomizer implements SessionCustomizer
 {
+	@SuppressWarnings("FieldCanBeLocal")
 	private static EclipseLinkToSpringContextBridge handler;
 
 	@Override
-	public void customize(Session session) throws Exception
-	{
+	public void customize(Session session)
+    {
 		handler = new EclipseLinkToSpringContextBridge();
 		
 		@SuppressWarnings("rawtypes")

@@ -17,6 +17,7 @@ import com.ethlo.dachs.EntityChangeListener;
 import com.ethlo.dachs.EntityChangeSetListener;
 import com.ethlo.dachs.EntityListenerIgnore;
 import com.ethlo.dachs.InternalEntityListener;
+import com.ethlo.dachs.TransactionListener;
 import com.ethlo.dachs.hibernate.HibernateLazyIdExtractor;
 import com.ethlo.dachs.hibernate.HibernatePropertyChangeInterceptor;
 import com.ethlo.dachs.hibernate.HibernatePropertyChangeInterceptorBridge;
@@ -29,22 +30,23 @@ import com.ethlo.dachs.jpa.NotifyingJpaTransactionManager;
 public class DachsHibernateAutoConfiguration
 {
     @Autowired(required=false)
-    private List<EntityChangeSetListener> txnListeners;
+    private List<EntityChangeSetListener> changeSetListeners;
     
     @Autowired(required=false)
     private List<EntityChangeListener> listeners;
+
+    @Autowired(required=false)
+    private List<TransactionListener> transactionListeners;
     
     @ConditionalOnMissingBean(value=InternalEntityListener.class)
     @Bean
     public InternalEntityListener internalEntityListener(EntityManagerFactory emf)
     {
-        final DefaultInternalEntityListener internalEntityListener = new DefaultInternalEntityListener(emf, txnListeners, listeners)
+        final DefaultInternalEntityListener internalEntityListener = new DefaultInternalEntityListener(emf, changeSetListeners, listeners, transactionListeners)
             .setLazyIdExtractor(new HibernateLazyIdExtractor(emf))
             .fieldFilter(field->
-            {
-                return !Modifier.isStatic(field.getModifiers()) 
-                    && field.getAnnotation(EntityListenerIgnore.class) == null;
-            });
+                    !Modifier.isStatic(field.getModifiers())
+                        && field.getAnnotation(EntityListenerIgnore.class) == null);
         
         HibernatePropertyChangeInterceptorBridge.setHibernatePropertyChangeInterceptor(new HibernatePropertyChangeInterceptor(internalEntityListener));
 

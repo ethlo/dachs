@@ -22,8 +22,8 @@ import com.ethlo.dachs.LazyIdExtractor;
  */
 public class HibernateLazyIdExtractor implements LazyIdExtractor
 {
-	private PersistenceUnitUtil persistenceUnitUtil;
-	private SessionFactory factory;
+	private final PersistenceUnitUtil persistenceUnitUtil;
+	private final SessionFactory factory;
 
 	public HibernateLazyIdExtractor(EntityManagerFactory emf)
 	{
@@ -54,7 +54,7 @@ public class HibernateLazyIdExtractor implements LazyIdExtractor
                     retVal.add(f.getName());
                 }
             });
-	        return retVal.toArray(new String[retVal.size()]);
+	        return retVal.toArray(new String[0]);
 	    }
 	    else
 	    {
