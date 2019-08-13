@@ -5,9 +5,13 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 
 import javax.persistence.PersistenceUnitUtil;
@@ -37,6 +41,8 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
     private final InternalEntityListener listener;
     private final Predicate<Field> fieldFilter;
     private final Predicate<Object> entityFilter;
+
+    private final ConcurrentMap<String, PropertyAccessorCache> propertyAccessorCache = new ConcurrentHashMap<>();
 
     public EclipseLinkEntityEventListener(PersistenceUnitUtil persistenceUnitUtil, InternalEntityListener internalEntityListener)
     {
@@ -103,53 +109,73 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
 
     private List<ChangeRecord> extractManually(WriteObjectQuery writeObjectQuery, Predicate<Field> filter)
     {
+        final PropertyAccessorCache accessorCache = getAccessorCache(writeObjectQuery.getObject(), filter);
+
         final Object oldObj = writeObjectQuery.getBackupClone();
         final Object newObj = writeObjectQuery.getObject();
 
-        final ConfigurablePropertyAccessor accessorOld = PropertyAccessorFactory.forDirectFieldAccess(oldObj);
-        final ConfigurablePropertyAccessor accessorNew = PropertyAccessorFactory.forDirectFieldAccess(newObj);
-        final BeanWrapper beanAccessor = PropertyAccessorFactory.forBeanPropertyAccess(newObj);
-
         final List<ChangeRecord> retVal = new LinkedList<>();
-        for (PropertyDescriptor desc : beanAccessor.getPropertyDescriptors())
+        for (Map.Entry<String, Field> entry : accessorCache.getFields().entrySet())
         {
-            final String propName = desc.getName();
-            if (accessorNew.isReadableProperty(propName))
+            final String propName = entry.getKey();
+            final Object newPropValue = accessorCache.getValue(propName, newObj);
+            final Object oldPropValue = accessorCache.getValue(propName, oldObj);
+            if (!Objects.equals(newPropValue, oldPropValue))
             {
-                final Field field = ReflectionUtils.findField(oldObj.getClass(), propName);
-                if (filter == null || filter.test(field))
+                final ChangeRecord c = new ChangeRecord()
                 {
-                    final Object newPropValue = accessorNew.getPropertyValue(propName);
-                    final Object oldPropValue = accessorOld.getPropertyValue(propName);
-                    if (!Objects.equals(newPropValue, oldPropValue))
+                    @Override
+                    public ObjectChangeSet getOwner()
                     {
-                        final ChangeRecord c = new ChangeRecord()
-                        {
-                            @Override
-                            public ObjectChangeSet getOwner()
-                            {
-                                return null;
-                            }
-
-                            @Override
-                            public Object getOldValue()
-                            {
-                                return oldPropValue;
-                            }
-
-                            @Override
-                            public String getAttribute()
-                            {
-                                return propName;
-                            }
-                        };
-                        retVal.add(c);
+                        return null;
                     }
-                }
+
+                    @Override
+                    public Object getOldValue()
+                    {
+                        return oldPropValue;
+                    }
+
+                    @Override
+                    public String getAttribute()
+                    {
+                        return propName;
+                    }
+                };
+                retVal.add(c);
             }
         }
         return retVal;
     }
+
+    private PropertyAccessorCache getAccessorCache(final Object bean, final Predicate<Field> filter)
+    {
+        final Class<?> type = bean.getClass();
+        final String typeName = type.getName();
+        return propertyAccessorCache.computeIfAbsent(typeName, (missing) ->
+        {
+            final BeanWrapper beanAccessor = PropertyAccessorFactory.forBeanPropertyAccess(bean);
+            final Map<String, Field> accessibleFields = new HashMap<>();
+            for (PropertyDescriptor desc : beanAccessor.getPropertyDescriptors())
+            {
+                final String propName = desc.getName();
+                if (beanAccessor.isReadableProperty(propName))
+                {
+                    final Field field = ReflectionUtils.findField(type, propName);
+                    if (field != null)
+                    {
+                        if (filter == null || filter.test(field))
+                        {
+                            field.setAccessible(true);
+                            accessibleFields.put(propName, field);
+                        }
+                    }
+                }
+            }
+            return new PropertyAccessorCache(type, accessibleFields);
+        });
+    }
+
 
     private Serializable getObjectId(Object obj)
     {

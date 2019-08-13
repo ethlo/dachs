@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ReflectionUtil
 {
-    public static Object get(Object someObject, String fieldName) throws RuntimeNoSuchFieldException
+    public static Object get(Object someObject, String fieldName)
     {
         final Field field = getField(someObject.getClass(), fieldName);
         field.setAccessible(true);
@@ -20,7 +20,19 @@ public class ReflectionUtil
             throw new RuntimeIllegalAccessException(exc);
         }
     }
-    
+
+    public static Object get(Object someObject, Field field)
+    {
+        try
+        {
+            return field.get(someObject);
+        }
+        catch (IllegalAccessException exc)
+        {
+            throw new RuntimeIllegalAccessException(exc);
+        }
+    }
+
     public static List<Field> getAllFields(Class<?> type)
     {
         List<Field> fields = new ArrayList<>();

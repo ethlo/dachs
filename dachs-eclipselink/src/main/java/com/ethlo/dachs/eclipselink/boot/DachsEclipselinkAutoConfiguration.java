@@ -23,6 +23,7 @@ import com.ethlo.dachs.TransactionListener;
 import com.ethlo.dachs.eclipselink.EclipseLinkEntityEventListener;
 import com.ethlo.dachs.eclipselink.EclipseLinkToSpringContextBridge;
 import com.ethlo.dachs.eclipselink.EclipselinkLazyIdExtractor;
+import com.ethlo.dachs.eclipselink.FlushAwareInternalEntityListener;
 import com.ethlo.dachs.jpa.DefaultInternalEntityListener;
 import com.ethlo.dachs.jpa.NotifyingJpaTransactionManager;
 
@@ -47,7 +48,7 @@ public class DachsEclipselinkAutoConfiguration
     @Bean
     public InternalEntityListener internalEntityListener(EntityManagerFactory emf)
     {
-        final DefaultInternalEntityListener internalEntityListener = new DefaultInternalEntityListener(emf, changeSetListeners, listeners, transactionListeners)
+        final DefaultInternalEntityListener internalEntityListener = new FlushAwareInternalEntityListener(emf, changeSetListeners, listeners, transactionListeners)
                 .setLazyIdExtractor(new EclipselinkLazyIdExtractor(emf))
                 .fieldFilter(field ->
                         !Modifier.isStatic(field.getModifiers())

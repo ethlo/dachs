@@ -116,7 +116,7 @@ public class DefaultInternalEntityListener implements InternalEntityListener, Se
     @Override
     public void beforeCommit(Object txn)
     {
-        if (flush)
+        if (shouldFlush())
         {
             final EntityManager txnEm = EntityManagerFactoryUtils.getTransactionalEntityManager(emf);
             if (txnEm != null)
@@ -138,6 +138,16 @@ public class DefaultInternalEntityListener implements InternalEntityListener, Se
         }
 
         preChangeset.remove();
+    }
+
+    protected boolean shouldFlush()
+    {
+        return flush;
+    }
+
+    protected EntityManagerFactory getEmf()
+    {
+        return emf;
     }
 
     @Override
