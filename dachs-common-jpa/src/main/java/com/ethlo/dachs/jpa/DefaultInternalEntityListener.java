@@ -42,8 +42,6 @@ import com.ethlo.dachs.util.ReflectionUtil;
  */
 public class DefaultInternalEntityListener implements InternalEntityListener, Serializable
 {
-    private static final long serialVersionUID = -6562131067110759051L;
-
     private final Set<EntityChangeSetListener> entityChangeSetListeners;
     private final Set<EntityChangeListener> entityChangeListeners;
     private final Set<TransactionListener> transactionListeners;

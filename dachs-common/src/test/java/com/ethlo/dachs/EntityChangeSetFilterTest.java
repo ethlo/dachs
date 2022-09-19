@@ -2,7 +2,7 @@ package com.ethlo.dachs;
 
 import java.util.Collections;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.util.StringUtils;
 
 public class EntityChangeSetFilterTest

@@ -25,36 +25,33 @@ import com.ethlo.dachs.test.model.Customer;
 import com.ethlo.dachs.test.repository.CustomerRepository;
 
 @SpringBootApplication
-@EnableAutoConfiguration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackageClasses=CustomerRepository.class)
 @EntityScan(basePackageClasses=Customer.class)
 public class HibernateCfg extends JpaBaseConfiguration
 {
-    protected HibernateCfg(DataSource dataSource, JpaProperties properties, ObjectProvider<JtaTransactionManager> jtaTransactionManager,
-                    ObjectProvider<TransactionManagerCustomizers> transactionManagerCustomizers)
-    {
-        super(dataSource, properties, jtaTransactionManager, transactionManagerCustomizers);
-    }
+	protected HibernateCfg(DataSource dataSource, JpaProperties properties, ObjectProvider<JtaTransactionManager> jtaTransactionManager) {
+		super(dataSource, properties, jtaTransactionManager);
+	}
 
 	@Bean
 	public CollectingEntityChangeSetListener collectingSetListener()
 	{
 		return new CollectingEntityChangeSetListener();
 	}
-	
+
 	@Bean
 	public CollectingEntityChangeListener collectingListener()
 	{
 		return new CollectingEntityChangeListener();
 	}
-	
+
 	@Override
 	protected AbstractJpaVendorAdapter createJpaVendorAdapter()
 	{
 		return new HibernateJpaVendorAdapter();
 	}
-	
+
 	@Override
 	protected Map<String, Object> getVendorProperties()
 	{

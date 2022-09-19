@@ -8,7 +8,6 @@ import com.ethlo.dachs.InternalEntityListener;
 
 public class NotifyingJpaTransactionManager extends JpaTransactionManager
 {
-    private static final long serialVersionUID = 9113827563871441811L;
     private final InternalEntityListener listener;
     
     public NotifyingJpaTransactionManager(InternalEntityListener internalEntityListener)

@@ -26,19 +26,17 @@ import com.ethlo.dachs.test.model.Customer;
 import com.ethlo.dachs.test.repository.CustomerRepository;
 
 @SpringBootApplication
-@EnableAutoConfiguration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackageClasses=CustomerRepository.class)
 @EntityScan(basePackageClasses=Customer.class)
 public class EclipselinkCfg extends JpaBaseConfiguration
 {
-    protected EclipselinkCfg(DataSource dataSource, JpaProperties properties, ObjectProvider<JtaTransactionManager> jtaTransactionManager,
-                    ObjectProvider<TransactionManagerCustomizers> transactionManagerCustomizers)
+    protected EclipselinkCfg(DataSource dataSource, JpaProperties properties, ObjectProvider<JtaTransactionManager> jtaTransactionManager)
     {
-        super(dataSource, properties, jtaTransactionManager, transactionManagerCustomizers);
+        super(dataSource, properties, jtaTransactionManager);
     }
-	
-	@Override
+
+    @Override
 	protected AbstractJpaVendorAdapter createJpaVendorAdapter()
 	{
 	    return new EclipseLinkJpaVendorAdapter();
