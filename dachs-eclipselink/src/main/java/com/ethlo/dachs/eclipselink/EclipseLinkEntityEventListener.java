@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 
-import javax.persistence.PersistenceUnitUtil;
+import jakarta.persistence.PersistenceUnitUtil;
 
 import org.eclipse.persistence.descriptors.DescriptorEvent;
 import org.eclipse.persistence.queries.WriteObjectQuery;

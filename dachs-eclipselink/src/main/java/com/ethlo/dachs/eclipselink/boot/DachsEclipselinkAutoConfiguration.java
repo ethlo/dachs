@@ -3,8 +3,8 @@ package com.ethlo.dachs.eclipselink.boot;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnitUtil;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

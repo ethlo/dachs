@@ -6,8 +6,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Objects;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;

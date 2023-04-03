@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 import org.springframework.util.ReflectionUtils;
 

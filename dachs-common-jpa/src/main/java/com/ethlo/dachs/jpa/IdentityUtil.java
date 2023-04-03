@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.persistence.Entity;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PersistenceUnitUtil;
+import jakarta.persistence.Entity;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PersistenceUnitUtil;
 
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.EntityDataChangeImpl;

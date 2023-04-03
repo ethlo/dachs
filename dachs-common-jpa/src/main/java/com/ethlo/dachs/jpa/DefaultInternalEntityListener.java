@@ -1,41 +1,21 @@
 package com.ethlo.dachs.jpa;
 
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.IdClass;
+import com.ethlo.dachs.*;
+import com.ethlo.dachs.util.ReflectionUtil;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.IdClass;
 
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
-import com.ethlo.dachs.EntityChangeListener;
-import com.ethlo.dachs.EntityChangeSetListener;
-import com.ethlo.dachs.EntityDataChange;
-import com.ethlo.dachs.EntityDataChangeImpl;
-import com.ethlo.dachs.EntityListenerIgnore;
-import com.ethlo.dachs.InternalEntityListener;
-import com.ethlo.dachs.LazyIdExtractor;
-import com.ethlo.dachs.MutableEntityDataChangeSet;
-import com.ethlo.dachs.PropertyChange;
-import com.ethlo.dachs.TransactionListener;
-import com.ethlo.dachs.util.ReflectionUtil;
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Predicate;
 
 /**
  * Caches entity changes until the transaction commits, or discards them in case of a roll-back.
@@ -227,7 +207,7 @@ public class DefaultInternalEntityListener implements InternalEntityListener, Se
         {
             final String propName = e.getKey().getName();
             final Optional<PropertyChange<?>> idProp = impl.getPropertyChange(propName);
-            if (!idProp.isPresent())
+            if (idProp.isEmpty())
             {
                 impl.prependIdPropertyChange(e.getKey(), propName, e.getValue(), deleted);
             }
