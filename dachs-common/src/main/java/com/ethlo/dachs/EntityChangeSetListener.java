@@ -9,11 +9,17 @@ public interface EntityChangeSetListener
      * Triggered just before the transaction is about to commit
      * @param changeset The change set
      */
-	void preDataChanged(EntityDataChangeSet changeset);
+	default void preDataChanged(EntityDataChangeSet changeset)
+    {
+
+    }
 
 	/**
      * Triggered just after the transaction is committed
      * @param changeset The change set
      */
-	void postDataChanged(EntityDataChangeSet changeset);
+	default void postDataChanged(EntityDataChangeSet changeset)
+    {
+
+    }
 }

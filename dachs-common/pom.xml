@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>com.ethlo.dachs</groupId>
 		<artifactId>dachs</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0</version>
 	</parent>
 	<artifactId>dachs-common</artifactId>
 	<name>Dachs - Common</name>

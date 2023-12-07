@@ -9,21 +9,48 @@ package com.ethlo.dachs;
  */
 public interface EntityChangeListener
 {
-    void preCreate(EntityDataChange entityData);
+    default void preCreate(EntityDataChange entityData)
+    {
 
-    void preUpdate(EntityDataChange entityData);
+    }
 
-    void preDelete(EntityDataChange entityData);
+    default void preUpdate(EntityDataChange entityData)
+    {
 
-    void created(EntityDataChange entityData);
+    }
 
-    void updated(EntityDataChange entityData);
+    default void preDelete(EntityDataChange entityData)
+    {
 
-    void deleted(EntityDataChange entityData);
+    }
 
-    void rolledBackCreated(EntityDataChange e);
+    default void created(EntityDataChange entityData)
+    {
 
-    void rolledBackUpdated(EntityDataChange e);
+    }
 
-    void rolledBackDeleted(EntityDataChange e);
+    default void updated(EntityDataChange entityData)
+    {
+
+    }
+
+    default void deleted(EntityDataChange entityData)
+    {
+
+    }
+
+    default void rolledBackCreated(EntityDataChange e)
+    {
+
+    }
+
+    default void rolledBackUpdated(EntityDataChange e)
+    {
+
+    }
+
+    default void rolledBackDeleted(EntityDataChange e)
+    {
+
+    }
 }

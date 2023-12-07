@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.ethlo.dachs</groupId>
 		<artifactId>dachs</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0</version>
 	</parent>
 	<name>Dachs - Audit</name>
 	<description>Dachs - Data Change Snitch - Audit module</description>

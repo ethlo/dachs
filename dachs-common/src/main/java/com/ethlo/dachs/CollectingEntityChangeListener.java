@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Simple listener that collects all events so they can be inspected later. Mostly useful for testing purposes.
  */
-public class CollectingEntityChangeListener extends EntityChangeListenerAdapter
+public class CollectingEntityChangeListener implements EntityChangeListener
 {
     private final List<EntityDataChange> preCreated = new LinkedList<>();
     private final List<EntityDataChange> postCreated = new LinkedList<>();
