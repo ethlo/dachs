@@ -3,15 +3,12 @@ package com.ethlo.dachs.eclipselink.boot;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.PersistenceUnitUtil;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
+import org.springframework.boot.transaction.autoconfigure.TransactionAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,6 +23,8 @@ import com.ethlo.dachs.eclipselink.EclipselinkLazyIdExtractor;
 import com.ethlo.dachs.eclipselink.FlushAwareInternalEntityListener;
 import com.ethlo.dachs.jpa.DefaultInternalEntityListener;
 import com.ethlo.dachs.jpa.NotifyingJpaTransactionManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
 
 @Configuration
 @ConditionalOnProperty(name = "spring.jpa.properties.eclipselink.session.customizer", havingValue = "com.ethlo.dachs.eclipselink.DachsSessionCustomizer")
@@ -44,6 +43,13 @@ public class DachsEclipselinkAutoConfiguration
     @Value("${com.ethlo.dachs.eclipselink.explicit-flush:true}")
     private boolean forceFlush;
 
+    @ConditionalOnMissingBean(value = NotifyingJpaTransactionManager.class)
+    @Bean
+    public static NotifyingJpaTransactionManager transactionManager(InternalEntityListener internalEntityListener)
+    {
+        return new NotifyingJpaTransactionManager(internalEntityListener);
+    }
+
     @ConditionalOnMissingBean(value = InternalEntityListener.class)
     @Bean
     public InternalEntityListener internalEntityListener(EntityManagerFactory emf)
@@ -59,12 +65,5 @@ public class DachsEclipselinkAutoConfiguration
         final EclipseLinkEntityEventListener handler = new EclipseLinkEntityEventListener(persistenceUnitUtil, internalEntityListener);
         EclipseLinkToSpringContextBridge.setEntityChangeListener(handler);
         return internalEntityListener;
-    }
-
-    @ConditionalOnMissingBean(value = NotifyingJpaTransactionManager.class)
-    @Bean
-    public static NotifyingJpaTransactionManager transactionManager(InternalEntityListener internalEntityListener)
-    {
-        return new NotifyingJpaTransactionManager(internalEntityListener);
     }
 }

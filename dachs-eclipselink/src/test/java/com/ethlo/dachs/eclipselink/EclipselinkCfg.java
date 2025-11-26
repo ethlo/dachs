@@ -6,13 +6,12 @@ import java.util.TreeMap;
 import javax.sql.DataSource;
 
 import org.eclipse.persistence.config.PersistenceUnitProperties;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.autoconfigure.orm.jpa.JpaBaseConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
-import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
+import org.springframework.boot.jpa.autoconfigure.JpaBaseConfiguration;
+import org.springframework.boot.jpa.autoconfigure.JpaProperties;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
@@ -27,8 +26,8 @@ import com.ethlo.dachs.test.repository.CustomerRepository;
 
 @SpringBootApplication
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackageClasses=CustomerRepository.class)
-@EntityScan(basePackageClasses=Customer.class)
+@EnableJpaRepositories(basePackageClasses = CustomerRepository.class)
+@EntityScan(basePackageClasses = Customer.class)
 public class EclipselinkCfg extends JpaBaseConfiguration
 {
     protected EclipselinkCfg(DataSource dataSource, JpaProperties properties, ObjectProvider<JtaTransactionManager> jtaTransactionManager)
@@ -37,26 +36,27 @@ public class EclipselinkCfg extends JpaBaseConfiguration
     }
 
     @Override
-	protected AbstractJpaVendorAdapter createJpaVendorAdapter()
-	{
-	    return new EclipseLinkJpaVendorAdapter();
-	}
-	
-	@Override
-	protected Map<String, Object> getVendorProperties()
-	{
-		final Map<String, Object> retVal = new TreeMap<>();
-		retVal.put(PersistenceUnitProperties.WEAVING, "static");
-		retVal.put(PersistenceUnitProperties.DDL_GENERATION, "create-tables");
-		return retVal;
-	}
-	
+    protected AbstractJpaVendorAdapter createJpaVendorAdapter()
+    {
+        return new EclipseLinkJpaVendorAdapter();
+    }
+
+    @Override
+    @NullMarked
+    protected Map<String, Object> getVendorProperties(DataSource dataSource)
+    {
+        final Map<String, Object> retVal = new TreeMap<>();
+        retVal.put(PersistenceUnitProperties.WEAVING, "static");
+        retVal.put(PersistenceUnitProperties.DDL_GENERATION, "create-tables");
+        return retVal;
+    }
+
     @Bean
     public CollectingEntityChangeSetListener collectingSetListener()
     {
         return new CollectingEntityChangeSetListener();
     }
-    
+
     @Bean
     public CollectingEntityChangeListener collectingListener()
     {
