@@ -12,6 +12,7 @@ import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -25,82 +26,89 @@ import jakarta.persistence.Version;
 
 import com.ethlo.dachs.EntityListenerIgnore;
 
-@Table(name="customer")
+@Table(name = "customer")
 @Entity
 public class Customer
 {
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
+    @Column(name = "first_name")
     private String firstName;
+
+    @Column(name = "last_name")
     private String lastName;
-    
-    @CollectionTable(name="customer_tags")
-    @ElementCollection(fetch=FetchType.EAGER)
+
+    @CollectionTable(name = "customer_tags")
+    @ElementCollection(fetch = FetchType.EAGER)
     private final Set<String> tags = new HashSet<>();
-    
+
     @OneToMany(mappedBy = "customer", cascade = ALL, orphanRemoval = true)
     @MapKey(name = "name")
     private final Map<String, Category> categories = new HashMap<>();
-    
+
     @Version
     @EntityListenerIgnore
     private Integer version;
-    
-    @OneToMany(targetEntity=ProductOrder.class, cascade=CascadeType.ALL)
+
+    @OneToMany(targetEntity = ProductOrder.class, cascade = CascadeType.ALL)
     private final List<ProductOrder> orders = new ArrayList<>();
-    
-    protected Customer() {}
+
+    protected Customer()
+    {
+    }
 
     public Customer(String firstName, String lastName)
     {
         this.firstName = firstName;
         this.lastName = lastName;
     }
-    
+
     public void addTags(String... tags)
     {
-    	this.tags.addAll(Arrays.asList(tags));
+        this.tags.addAll(Arrays.asList(tags));
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return String.format(
                 "Customer[id=%d, firstName='%s', lastName='%s']",
-                id, firstName, lastName);
+                id, firstName, lastName
+        );
     }
 
-	public void setFirstName(String firstname)
-	{
-		this.firstName = firstname;
-	}
+    public void setFirstName(String firstname)
+    {
+        this.firstName = firstname;
+    }
 
-	public String getFirstName()
-	{
-		return this.firstName;
-	}
-	
-	public String getLastName()
-	{
-		return this.lastName;
-	}
+    public String getFirstName()
+    {
+        return this.firstName;
+    }
 
-	public void setLastName(String lastName)
-	{
-		this.lastName = lastName;
-	}
+    public String getLastName()
+    {
+        return this.lastName;
+    }
 
-	public Long getId()
-	{
-		return this.id;
-	}
+    public void setLastName(String lastName)
+    {
+        this.lastName = lastName;
+    }
 
-	public void addOrder(ProductOrder order)
-	{
-		this.orders.add(order);
-		order.setCustomer(this);
-	}
+    public Long getId()
+    {
+        return this.id;
+    }
+
+    public void addOrder(ProductOrder order)
+    {
+        this.orders.add(order);
+        order.setCustomer(this);
+    }
 
     public Set<String> getTags()
     {

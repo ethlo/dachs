@@ -2,6 +2,7 @@ package com.ethlo.dachs.test.model;
 
 import java.util.Currency;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,10 +13,16 @@ public class Product
 {
 	@Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Column(name="id")
 	private Integer id;
-    
+
+    @Column(name="name")
 	private String name;
+
+    @Column(name="currency")
 	private Currency currency;
+
+    @Column(name="price_in_cents")
 	private Integer priceInCents;
 	
 	protected Product()

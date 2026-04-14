@@ -1,6 +1,7 @@
 package com.ethlo.dachs.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,9 +14,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -36,7 +36,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
     @Autowired
     protected CollectingEntityChangeSetListener listener;
 
-    @Before
+    @BeforeEach
     public void clear()
     {
         listener.clear();
@@ -86,7 +86,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
         });
 
         final Collection<EntityDataChange> created = listener.getPostDataChangeSet().getCreated();
-        Assert.assertEquals(7, created.size());
+        assertEquals(7, created.size());
         final EntityDataChange created1 = getById(created, Customer.class, firstId.get());
         assertThat(created1.getId()).isEqualTo(firstId.get());
         assertThat(created1.getEntity().getClass().getCanonicalName()).isEqualTo(Customer.class.getCanonicalName());
@@ -110,7 +110,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
         });
 
         final Collection<EntityDataChange> createdM = listener.getPostDataChangeSet().getCreated();
-        Assert.assertEquals(2, createdM.size());
+        assertEquals(2, createdM.size());
 
         final EntityDataChange createdM1 = getById(createdM, Customer.class, joeId.get());
         assertThat(createdM1.getId()).isEqualTo(joeId.get());
@@ -149,7 +149,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
         });
 
         final Collection<EntityDataChange> updated = listener.getPostDataChangeSet().getUpdated();
-        Assert.assertEquals(1, updated.size());
+        assertEquals(1, updated.size());
 
         final EntityDataChange updated1 = getById(updated, Customer.class, 1L);
         assertThat(updated1.getId()).isEqualTo(1L);
@@ -171,7 +171,7 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
         });
 
         final Collection<EntityDataChange> deleted = listener.getPostDataChangeSet().getDeleted();
-        Assert.assertEquals(1, deleted.size());
+        assertEquals(1, deleted.size());
 
         final EntityDataChange deleted1 = getById(deleted, Customer.class, 1L);
         assertThat(deleted1.getId()).isEqualTo(1L);
