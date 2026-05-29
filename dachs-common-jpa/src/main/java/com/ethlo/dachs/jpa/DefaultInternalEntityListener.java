@@ -3,14 +3,12 @@ package com.ethlo.dachs.jpa;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -71,45 +69,6 @@ public class DefaultInternalEntityListener implements InternalEntityListener, Se
 
         this.transactionListeners =
                 transactionListeners != null ? (Supplier) transactionListeners : Collections::emptyList;
-    }
-
-    // Backward-compatible constructors (still snapshot, but now delegates)
-    public DefaultInternalEntityListener(EntityManagerFactory emf, Collection<EntityChangeSetListener> setListeners,
-                                         Collection<EntityChangeListener> listeners,
-                                         Collection<TransactionListener> transactionListeners)
-    {
-        this(emf,
-                () -> setListeners,
-                () -> listeners,
-                () -> transactionListeners
-        );
-    }
-
-    public DefaultInternalEntityListener(EntityManagerFactory emf, EntityChangeSetListener... setListeners)
-    {
-        this(emf,
-                () -> Arrays.asList(setListeners),
-                Collections::emptyList,
-                Collections::emptyList
-        );
-    }
-
-    public DefaultInternalEntityListener(EntityManagerFactory emf, EntityChangeListener... listeners)
-    {
-        this(emf,
-                Collections::emptyList,
-                () -> Arrays.asList(listeners),
-                Collections::emptyList
-        );
-    }
-
-    public DefaultInternalEntityListener(EntityManagerFactory emf, List<EntityChangeSetListener> listeners)
-    {
-        this(emf,
-                () -> listeners,
-                Collections::emptyList,
-                Collections::emptyList
-        );
     }
 
     public boolean getFlush()

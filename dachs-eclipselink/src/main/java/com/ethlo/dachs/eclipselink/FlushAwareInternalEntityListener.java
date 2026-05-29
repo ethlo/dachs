@@ -1,11 +1,7 @@
 package com.ethlo.dachs.eclipselink;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Supplier;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
 
 import org.eclipse.persistence.internal.jpa.EntityManagerImpl;
 import org.eclipse.persistence.internal.sessions.RepeatableWriteUnitOfWork;
@@ -16,6 +12,8 @@ import com.ethlo.dachs.EntityChangeListener;
 import com.ethlo.dachs.EntityChangeSetListener;
 import com.ethlo.dachs.TransactionListener;
 import com.ethlo.dachs.jpa.DefaultInternalEntityListener;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 
 public class FlushAwareInternalEntityListener extends DefaultInternalEntityListener
 {
@@ -29,28 +27,8 @@ public class FlushAwareInternalEntityListener extends DefaultInternalEntityListe
                 emf,
                 setListenersSupplier,
                 listenersSupplier,
-                transactionListenersSupplier);
-    }
-
-    public FlushAwareInternalEntityListener(
-            final EntityManagerFactory emf,
-            final EntityChangeSetListener... setListeners)
-    {
-        super(emf, setListeners);
-    }
-
-    public FlushAwareInternalEntityListener(
-            final EntityManagerFactory emf,
-            final EntityChangeListener... listeners)
-    {
-        super(emf, listeners);
-    }
-
-    public FlushAwareInternalEntityListener(
-            final EntityManagerFactory emf,
-            final List<EntityChangeSetListener> listeners)
-    {
-        super(emf, listeners);
+                transactionListenersSupplier
+        );
     }
 
     @Override
