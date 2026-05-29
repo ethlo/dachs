@@ -2,6 +2,7 @@ package com.ethlo.dachs.eclipselink;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -18,22 +19,36 @@ import com.ethlo.dachs.jpa.DefaultInternalEntityListener;
 
 public class FlushAwareInternalEntityListener extends DefaultInternalEntityListener
 {
-    public FlushAwareInternalEntityListener(final EntityManagerFactory emf, final Collection<EntityChangeSetListener> setListeners, final Collection<EntityChangeListener> listeners, final Collection<TransactionListener> transactionListeners)
+    public FlushAwareInternalEntityListener(
+            final EntityManagerFactory emf,
+            final Supplier<? extends Collection<EntityChangeSetListener>> setListenersSupplier,
+            final Supplier<? extends Collection<EntityChangeListener>> listenersSupplier,
+            final Supplier<? extends Collection<TransactionListener>> transactionListenersSupplier)
     {
-        super(emf, setListeners, listeners, transactionListeners);
+        super(
+                emf,
+                setListenersSupplier,
+                listenersSupplier,
+                transactionListenersSupplier);
     }
 
-    public FlushAwareInternalEntityListener(final EntityManagerFactory emf, final EntityChangeSetListener... setListeners)
+    public FlushAwareInternalEntityListener(
+            final EntityManagerFactory emf,
+            final EntityChangeSetListener... setListeners)
     {
         super(emf, setListeners);
     }
 
-    public FlushAwareInternalEntityListener(final EntityManagerFactory emf, final EntityChangeListener... listeners)
+    public FlushAwareInternalEntityListener(
+            final EntityManagerFactory emf,
+            final EntityChangeListener... listeners)
     {
         super(emf, listeners);
     }
 
-    public FlushAwareInternalEntityListener(final EntityManagerFactory emf, final List<EntityChangeSetListener> listeners)
+    public FlushAwareInternalEntityListener(
+            final EntityManagerFactory emf,
+            final List<EntityChangeSetListener> listeners)
     {
         super(emf, listeners);
     }
@@ -41,16 +56,23 @@ public class FlushAwareInternalEntityListener extends DefaultInternalEntityListe
     @Override
     protected boolean shouldFlush()
     {
-        final EntityManager txnEm = EntityManagerFactoryUtils.getTransactionalEntityManager(getEmf());
+        final EntityManager txnEm =
+                EntityManagerFactoryUtils.getTransactionalEntityManager(getEmf());
+
         if (txnEm instanceof EntityManagerImpl)
         {
-            final UnitOfWork iem = ((EntityManagerImpl) txnEm).getUnitOfWork();
+            final UnitOfWork iem =
+                    ((EntityManagerImpl) txnEm).getUnitOfWork();
+
             if (iem instanceof RepeatableWriteUnitOfWork)
             {
-                final boolean isWithinFlush = ((RepeatableWriteUnitOfWork) iem).isWithinFlush();
+                final boolean isWithinFlush =
+                        ((RepeatableWriteUnitOfWork) iem).isWithinFlush();
+
                 return !isWithinFlush;
             }
         }
+
         return getFlush();
     }
 }
