@@ -6,39 +6,38 @@
     <version>1.4.0</version>
     <name>Dachs - Data Change Snitch</name>
     <packaging>pom</packaging>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>4.0.5</version>
     </parent>
+
+    <properties>
+        <!-- Disable the default deploy plugin so the central-publishing-maven-plugin can take over -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <developers>
         <developer>
             <name>Morten Haraldsen</name>
             <url>https://ethlo.com</url>
         </developer>
     </developers>
+
     <scm>
         <url>https://github.com:ethlo/dachs</url>
         <connection>scm:git:git@github.com:ethlo/dachs.git</connection>
         <developerConnection>scm:git:git@github.com:ethlo/dachs.git</developerConnection>
     </scm>
+
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
             <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
-	<distributionManagement>
-		<repository>
-			<id>sonatype-nexus-staging</id>
-			<name>Nexus Release Repository</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-		<snapshotRepository>
-			<id>sonatype-nexus-snapshots</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
+
     <modules>
         <module>dachs-eclipselink</module>
         <module>dachs-common</module>
@@ -46,14 +45,15 @@
         <module>dachs-common-jpa</module>
         <module>dachs-audit</module>
     </modules>
+
     <build>
-		<extensions>
-			<extension>
-				<groupId>org.apache.maven.wagon</groupId>
-				<artifactId>wagon-ssh</artifactId>
-				<version>3.5.3</version>
-			</extension>
-		</extensions>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh</artifactId>
+                <version>3.5.3</version>
+            </extension>
+        </extensions>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -90,6 +90,7 @@
                         </execution>
                     </executions>
                 </plugin>
+                <!-- Retained for structure, but its execution is skipped via the property above -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
