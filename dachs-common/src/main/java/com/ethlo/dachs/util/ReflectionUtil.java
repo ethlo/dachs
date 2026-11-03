@@ -100,17 +100,20 @@ public class ReflectionUtil
         final String suffix = Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
         for (String name : new String[]{"get" + suffix, "is" + suffix})
         {
-            try
+            for (Class<?> c = type; c != null; c = c.getSuperclass())
             {
-                final Method method = type.getMethod(name);
-                if (method.getReturnType() != void.class && !Modifier.isStatic(method.getModifiers()) && method.trySetAccessible())
+                try
                 {
-                    return method;
+                    final Method method = c.getDeclaredMethod(name);
+                    if (method.getReturnType() != void.class && !Modifier.isStatic(method.getModifiers()) && method.trySetAccessible())
+                    {
+                        return method;
+                    }
                 }
-            }
-            catch (NoSuchMethodException exc)
-            {
-                // Try next
+                catch (NoSuchMethodException exc)
+                {
+                    // Try superclass
+                }
             }
         }
         return null;

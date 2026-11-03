@@ -49,6 +49,31 @@ public class ModelTest
         assertThat(change.getPreviousValue("firstName")).isNull();
     }
 
+    @Test
+    public void testPreviousValueUsesNonPublicInheritedGetter()
+    {
+        final EntityDataChange change = new EntityDataChangeImpl(1, new LazyPerson(), List.of());
+        assertThat(change.getPreviousValue("address")).isEqualTo("loaded");
+    }
+
+    static class LazyBase
+    {
+        private String address;
+
+        protected String getAddress()
+        {
+            if (address == null)
+            {
+                address = "loaded";
+            }
+            return address;
+        }
+    }
+
+    static class LazyPerson extends LazyBase
+    {
+    }
+
     @SuppressWarnings("unused")
     static class Person
     {
