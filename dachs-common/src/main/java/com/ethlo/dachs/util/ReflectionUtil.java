@@ -100,12 +100,24 @@ public class ReflectionUtil
         final String suffix = Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
         for (String name : new String[]{"get" + suffix, "is" + suffix})
         {
+            try
+            {
+                final Method method = usableGetter(type.getMethod(name));
+                if (method != null)
+                {
+                    return method;
+                }
+            }
+            catch (NoSuchMethodException exc)
+            {
+                // Not public, look for a non-public one
+            }
             for (Class<?> c = type; c != null; c = c.getSuperclass())
             {
                 try
                 {
-                    final Method method = c.getDeclaredMethod(name);
-                    if (method.getReturnType() != void.class && !Modifier.isStatic(method.getModifiers()) && method.trySetAccessible())
+                    final Method method = usableGetter(c.getDeclaredMethod(name));
+                    if (method != null)
                     {
                         return method;
                     }
@@ -117,5 +129,10 @@ public class ReflectionUtil
             }
         }
         return null;
+    }
+
+    private static Method usableGetter(Method method)
+    {
+        return method.getReturnType() != void.class && !Modifier.isStatic(method.getModifiers()) && method.trySetAccessible() ? method : null;
     }
 }

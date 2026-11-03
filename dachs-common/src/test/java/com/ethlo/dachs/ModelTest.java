@@ -56,6 +56,27 @@ public class ModelTest
         assertThat(change.getPreviousValue("address")).isEqualTo("loaded");
     }
 
+    @Test
+    public void testPreviousValueUsesInterfaceDefaultGetter()
+    {
+        final EntityDataChange change = new EntityDataChangeImpl(1, new Labelled(), List.of());
+        assertThat(change.getPreviousValue("label")).isEqualTo("default");
+    }
+
+    public interface HasLabel
+    {
+        default String getLabel()
+        {
+            return "default";
+        }
+    }
+
+    static class Labelled implements HasLabel
+    {
+        @SuppressWarnings("unused")
+        private String label;
+    }
+
     static class LazyBase
     {
         private String address;
