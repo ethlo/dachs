@@ -7,15 +7,26 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 public class EntityDataChangeImpl implements EntityDataChange
 {
 	private Serializable id;
 	private final Object entity;
 	private final Map<String, PropertyChange<?>> properties;
-	
+	private final Function<String, Object> currentValueReader;
+
 	public EntityDataChangeImpl(Serializable id, Object entity, Collection<PropertyChange<?>> properties)
 	{
+		this(id, entity, properties, null);
+	}
+
+	/**
+	 * @param currentValueReader Reads the current value of a property of the entity, or null to read the field
+	 */
+	public EntityDataChangeImpl(Serializable id, Object entity, Collection<PropertyChange<?>> properties, Function<String, Object> currentValueReader)
+	{
+		this.currentValueReader = currentValueReader;
 		this.id = id;
 		this.entity = entity;
 		this.properties = new TreeMap<>();
@@ -43,6 +54,12 @@ public class EntityDataChangeImpl implements EntityDataChange
 		return properties.values();
 	}
 	
+	@Override
+	public Object getCurrentValue(String propertyName)
+	{
+		return currentValueReader != null ? currentValueReader.apply(propertyName) : EntityDataChange.super.getCurrentValue(propertyName);
+	}
+
 	@Override
 	public Optional<PropertyChange<?>> getPropertyChange(String propertyName)
 	{

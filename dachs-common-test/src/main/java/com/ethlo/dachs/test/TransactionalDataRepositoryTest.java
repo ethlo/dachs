@@ -26,8 +26,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 import com.ethlo.dachs.CollectingEntityChangeSetListener;
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.PropertyChange;
+import com.ethlo.dachs.test.model.Article;
 import com.ethlo.dachs.test.model.Category;
 import com.ethlo.dachs.test.model.Customer;
+import com.ethlo.dachs.test.model.Gadget;
 import com.ethlo.dachs.test.model.OrderLine;
 import com.ethlo.dachs.test.model.Product;
 import com.ethlo.dachs.test.model.ProductOrder;
@@ -273,5 +275,79 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
         assertThat(created.getPreviousValue("firstName")).isNull();
         assertThat(created.getPreviousValue(firstName)).isNull();
         assertThat(created.getPreviousValue("lastName")).isNull();
+    }
+
+    @Test
+    public void testPreviousValueReadsPersistedAttributeNotGetter()
+    {
+        final Long id = txTpl.execute(t ->
+        {
+            final Article article = new Article("abc");
+            em.persist(article);
+            em.flush();
+            return article.getId();
+        });
+        listener.clear();
+
+        txTpl.execute(t ->
+        {
+            em.find(Article.class, id).setNote("changed");
+            return null;
+        });
+
+        final EntityDataChange updated = getById(listener.getPostDataChangeSet().getUpdated(), Article.class, id);
+        assertThat(updated.getPreviousValue("code")).isEqualTo("abc");
+    }
+
+    @Test
+    public void testPreviousValueLoadsLazyCollectionAfterCommit()
+    {
+        final Long id = txTpl.execute(t ->
+        {
+            final Customer customer = new Customer("Tony", "Almeida");
+            customer.addOrder(new ProductOrder());
+            em.persist(customer);
+            em.flush();
+            return customer.getId();
+        });
+        listener.clear();
+
+        txTpl.execute(t ->
+        {
+            customerRepository.findById(id).orElseThrow().setFirstName("Anthony");
+            return null;
+        });
+
+        final EntityDataChange updated = getById(listener.getPostDataChangeSet().getUpdated(), Customer.class, id);
+        assertThat((Collection<?>) updated.getPreviousValue("orders")).hasSize(1);
+
+        // The join table is not reset by init.sql
+        txTpl.execute(t ->
+        {
+            customerRepository.deleteById(id);
+            return null;
+        });
+    }
+
+    @Test
+    public void testPreviousValueUsesPropertyAccess()
+    {
+        final Long id = txTpl.execute(t ->
+        {
+            final Gadget gadget = new Gadget("widget");
+            em.persist(gadget);
+            em.flush();
+            return gadget.getId();
+        });
+        listener.clear();
+
+        txTpl.execute(t ->
+        {
+            em.find(Gadget.class, id).setNote("changed");
+            return null;
+        });
+
+        final EntityDataChange updated = getById(listener.getPostDataChangeSet().getUpdated(), Gadget.class, id);
+        assertThat(updated.getPreviousValue("name")).isEqualTo("widget");
     }
 }

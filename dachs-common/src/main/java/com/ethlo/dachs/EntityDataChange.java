@@ -50,20 +50,31 @@ public interface EntityDataChange
 	}
 
 	/**
+	 * Get the current value of the given property of the entity. Implementations backed by a persistence provider read it
+	 * the way the provider does (respecting the access type and loading lazy attributes); the default reads the field.
+	 * @param propertyName The name of the entity property
+	 * @return The current value of the property
+	 */
+	default Object getCurrentValue(String propertyName)
+	{
+		return ReflectionUtil.get(getEntity(), propertyName);
+	}
+
+	/**
 	 * Get the value the given property had before this change: the old value if the property changed,
-	 * otherwise its current value on the entity
+	 * otherwise its current value (see {@link #getCurrentValue(String)})
 	 * @param propertyName The name of the entity property
 	 * @return The previous value of the property
 	 */
 	default Object getPreviousValue(String propertyName)
 	{
 		final Optional<PropertyChange<?>> change = getPropertyChange(propertyName);
-		return change.isPresent() ? change.get().getOldValue() : ReflectionUtil.getPropertyValue(getEntity(), propertyName);
+		return change.isPresent() ? change.get().getOldValue() : getCurrentValue(propertyName);
 	}
 
 	/**
 	 * Get the value the given attribute had before this change: the old value if the property changed,
-	 * otherwise its current value on the entity
+	 * otherwise its current value (see {@link #getCurrentValue(String)})
 	 * @param attribute The metamodel attribute of the entity property
 	 * @param <T> The type of the property
 	 * @return The previous value of the property

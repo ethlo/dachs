@@ -36,7 +36,7 @@ public class MutableEntityDataChangeSet implements EntityDataChangeSet
 
     private static EntityDataChange clone(EntityDataChange edc)
     {
-        return new EntityDataChangeImpl(edc.getId(), edc.getEntity(), clonePropChanges(edc.getPropertyChanges()));
+        return new EntityDataChangeImpl(edc.getId(), edc.getEntity(), clonePropChanges(edc.getPropertyChanges()), edc::getCurrentValue);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

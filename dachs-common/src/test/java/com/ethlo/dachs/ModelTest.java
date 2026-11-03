@@ -31,68 +31,33 @@ public class ModelTest
     }
 
     @Test
-    public void testPreviousValueFallsBackToCurrentValue()
+    public void testPreviousValueFallsBackToCurrentFieldValue()
     {
-        final Person person = new Person("Jane", "Doe", true);
+        final Person person = new Person("Jane", "Doe");
         final EntityDataChange change = new EntityDataChangeImpl(1, person, List.of(new PropertyChange<>("firstName", String.class, "Janet", "Jane")));
         assertThat(change.getPreviousValue("firstName")).isEqualTo("Janet");
         assertThat(change.getPreviousValue("lastName")).isEqualTo("Doe");
-        assertThat(change.getPreviousValue("active")).isEqualTo(true);
-        assertThat(change.getPreviousValue("nickname")).isEqualTo("JD");
     }
 
     @Test
     public void testPreviousValueKeepsNullOldValue()
     {
-        final Person person = new Person("Jane", "Doe", true);
+        final Person person = new Person("Jane", "Doe");
         final EntityDataChange change = new EntityDataChangeImpl(1, person, List.of(new PropertyChange<>("firstName", String.class, null, "Jane")));
         assertThat(change.getPreviousValue("firstName")).isNull();
     }
 
     @Test
-    public void testPreviousValueUsesNonPublicInheritedGetter()
+    public void testPreviousValueUsesCurrentValueReaderAlsoInCopies()
     {
-        final EntityDataChange change = new EntityDataChangeImpl(1, new LazyPerson(), List.of());
-        assertThat(change.getPreviousValue("address")).isEqualTo("loaded");
-    }
+        final Person person = new Person("Jane", "Doe");
+        final EntityDataChange change = new EntityDataChangeImpl(1, person, List.of(), name -> "read:" + name);
+        assertThat(change.getPreviousValue("lastName")).isEqualTo("read:lastName");
 
-    @Test
-    public void testPreviousValueUsesInterfaceDefaultGetter()
-    {
-        final EntityDataChange change = new EntityDataChangeImpl(1, new Labelled(), List.of());
-        assertThat(change.getPreviousValue("label")).isEqualTo("default");
-    }
-
-    public interface HasLabel
-    {
-        default String getLabel()
-        {
-            return "default";
-        }
-    }
-
-    static class Labelled implements HasLabel
-    {
-        @SuppressWarnings("unused")
-        private String label;
-    }
-
-    static class LazyBase
-    {
-        private String address;
-
-        protected String getAddress()
-        {
-            if (address == null)
-            {
-                address = "loaded";
-            }
-            return address;
-        }
-    }
-
-    static class LazyPerson extends LazyBase
-    {
+        final MutableEntityDataChangeSet set = new MutableEntityDataChangeSet();
+        set.getUpdated().add(change);
+        final EntityDataChange copy = MutableEntityDataChangeSet.clone(set).getUpdated().iterator().next();
+        assertThat(copy.getPreviousValue("lastName")).isEqualTo("read:lastName");
     }
 
     @SuppressWarnings("unused")
@@ -100,29 +65,11 @@ public class ModelTest
     {
         private final String firstName;
         private final String lastName;
-        private final boolean active;
-        private final String nickname = "JD";
 
-        Person(String firstName, String lastName, boolean active)
+        Person(String firstName, String lastName)
         {
             this.firstName = firstName;
             this.lastName = lastName;
-            this.active = active;
-        }
-
-        public String getFirstName()
-        {
-            return firstName;
-        }
-
-        public String getLastName()
-        {
-            return lastName;
-        }
-
-        public boolean isActive()
-        {
-            return active;
         }
     }
 }

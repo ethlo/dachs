@@ -1,9 +1,6 @@
 package com.ethlo.dachs.util;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,75 +61,5 @@ public class ReflectionUtil
             }
         }
         throw new RuntimeNoSuchFieldException(new NoSuchFieldException(fieldName));
-    }
-
-    /**
-     * Read a property through its getter, falling back to the field. Getters let lazily loaded (woven) attributes load.
-     */
-    public static Object getPropertyValue(Object someObject, String propertyName)
-    {
-        final Method getter = getGetter(someObject.getClass(), propertyName);
-        if (getter == null)
-        {
-            return get(someObject, propertyName);
-        }
-        try
-        {
-            return getter.invoke(someObject);
-        }
-        catch (IllegalAccessException exc)
-        {
-            throw new RuntimeIllegalAccessException(exc);
-        }
-        catch (InvocationTargetException exc)
-        {
-            final Throwable cause = exc.getCause();
-            throw cause instanceof RuntimeException runtimeException ? runtimeException : new IllegalStateException(cause);
-        }
-    }
-
-    private static Method getGetter(Class<?> type, String propertyName)
-    {
-        if (propertyName.isEmpty())
-        {
-            return null;
-        }
-        final String suffix = Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
-        for (String name : new String[]{"get" + suffix, "is" + suffix})
-        {
-            try
-            {
-                final Method method = usableGetter(type.getMethod(name));
-                if (method != null)
-                {
-                    return method;
-                }
-            }
-            catch (NoSuchMethodException exc)
-            {
-                // Not public, look for a non-public one
-            }
-            for (Class<?> c = type; c != null; c = c.getSuperclass())
-            {
-                try
-                {
-                    final Method method = usableGetter(c.getDeclaredMethod(name));
-                    if (method != null)
-                    {
-                        return method;
-                    }
-                }
-                catch (NoSuchMethodException exc)
-                {
-                    // Try superclass
-                }
-            }
-        }
-        return null;
-    }
-
-    private static Method usableGetter(Method method)
-    {
-        return method.getReturnType() != void.class && !Modifier.isStatic(method.getModifiers()) && method.trySetAccessible() ? method : null;
     }
 }

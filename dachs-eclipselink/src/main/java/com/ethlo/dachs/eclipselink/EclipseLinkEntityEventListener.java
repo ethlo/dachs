@@ -12,11 +12,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import jakarta.persistence.PersistenceUnitUtil;
 
+import org.eclipse.persistence.descriptors.ClassDescriptor;
 import org.eclipse.persistence.descriptors.DescriptorEvent;
+import org.eclipse.persistence.internal.sessions.AbstractSession;
+import org.eclipse.persistence.mappings.DatabaseMapping;
 import org.eclipse.persistence.queries.WriteObjectQuery;
 import org.eclipse.persistence.sessions.changesets.ChangeRecord;
 import org.eclipse.persistence.sessions.changesets.ObjectChangeSet;
@@ -30,6 +34,7 @@ import com.ethlo.dachs.EntityDataChangeImpl;
 import com.ethlo.dachs.InternalEntityListener;
 import com.ethlo.dachs.PropertyChange;
 import com.ethlo.dachs.jpa.EntityUtil;
+import com.ethlo.dachs.util.ReflectionUtil;
 
 /**
  * @author mha
@@ -57,14 +62,14 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
     @Override
     public void postPersistEvent(DescriptorEvent event)
     {
-        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), false, entityFilter, fieldFilter));
+        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), false, entityFilter, fieldFilter), currentValueReader(event));
         listener.created(e);
     }
 
     @Override
     public void postRemoveEvent(DescriptorEvent event)
     {
-        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), true, entityFilter, fieldFilter));
+        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), true, entityFilter, fieldFilter), currentValueReader(event));
         listener.deleted(e);
     }
 
@@ -74,7 +79,7 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
         final Serializable key = getObjectId(event.getObject());
         final Object entity = event.getObject();
         final Collection<PropertyChange<?>> properties = handleModification(event);
-        final EntityDataChange e = new EntityDataChangeImpl(key, entity, properties);
+        final EntityDataChange e = new EntityDataChangeImpl(key, entity, properties, currentValueReader(event));
 
         listener.updated(e);
     }
@@ -177,6 +182,21 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
     }
 
 
+    /**
+     * Reads properties through the EclipseLink mapping, so the entity's access type is respected and lazy attributes are loaded
+     */
+    private static Function<String, Object> currentValueReader(DescriptorEvent event)
+    {
+        final Object entity = event.getObject();
+        final ClassDescriptor descriptor = event.getDescriptor();
+        final AbstractSession session = event.getSession();
+        return propertyName ->
+        {
+            final DatabaseMapping mapping = descriptor != null ? descriptor.getObjectBuilder().getMappingForAttributeName(propertyName) : null;
+            return mapping != null ? mapping.getRealAttributeValueFromObject(entity, session) : ReflectionUtil.get(entity, propertyName);
+        };
+    }
+
     private Serializable getObjectId(Object obj)
     {
         final Object entityId = persistenceUnitUtil.getIdentifier(obj);
@@ -186,14 +206,14 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
     @Override
     public void prePersistEvent(DescriptorEvent event)
     {
-        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), false, entityFilter, fieldFilter));
+        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), false, entityFilter, fieldFilter), currentValueReader(event));
         listener.preCreate(e);
     }
 
     @Override
     public void preRemoveEvent(DescriptorEvent event)
     {
-        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), true, entityFilter, fieldFilter));
+        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), true, entityFilter, fieldFilter), currentValueReader(event));
 
         listener.preDelete(e);
     }
@@ -206,7 +226,7 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
         if (entityFilter == null || entityFilter.test(entity))
         {
             final Collection<PropertyChange<?>> properties = handleModification(event);
-            final EntityDataChange e = new EntityDataChangeImpl(key, entity, properties);
+            final EntityDataChange e = new EntityDataChangeImpl(key, entity, properties, currentValueReader(event));
             listener.preUpdate(e);
         }
     }
