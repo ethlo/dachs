@@ -35,8 +35,13 @@ public class IdentityUtil
     public Collection<EntityDataChange> toIndentityReferences(Collection<EntityDataChange> list)
     {
         return list.stream().map((entityData)->
-                new EntityDataChangeImpl(entityData.getId(), entityData.getEntity(), entityData.getPropertyChanges().stream().map(this::transform).collect(Collectors.toList()), entityData::getCurrentValue)).collect(Collectors.toList());
+                new EntityDataChangeImpl(entityData.getId(), entityData.getEntity(), entityData.getPropertyChanges().stream().map(this::transform).collect(Collectors.toList()), propertyName -> toIdentityReference(entityData.getPreviousValue(propertyName)))).collect(Collectors.toList());
     }    
+
+    private Object toIdentityReference(Object value)
+    {
+        return value != null ? transform(value.getClass(), value) : null;
+    }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private <T> Object transform(Class<T> type, Object object)

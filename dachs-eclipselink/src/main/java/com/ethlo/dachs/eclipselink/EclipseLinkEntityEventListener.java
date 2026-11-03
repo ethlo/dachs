@@ -62,14 +62,14 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
     @Override
     public void postPersistEvent(DescriptorEvent event)
     {
-        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), false, entityFilter, fieldFilter), currentValueReader(event));
+        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), false, entityFilter, fieldFilter), CREATED);
         listener.created(e);
     }
 
     @Override
     public void postRemoveEvent(DescriptorEvent event)
     {
-        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), true, entityFilter, fieldFilter), currentValueReader(event));
+        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), true, entityFilter, fieldFilter), previousValueReader(event));
         listener.deleted(e);
     }
 
@@ -79,7 +79,7 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
         final Serializable key = getObjectId(event.getObject());
         final Object entity = event.getObject();
         final Collection<PropertyChange<?>> properties = handleModification(event);
-        final EntityDataChange e = new EntityDataChangeImpl(key, entity, properties, currentValueReader(event));
+        final EntityDataChange e = new EntityDataChangeImpl(key, entity, properties, previousValueReader(event));
 
         listener.updated(e);
     }
@@ -183,9 +183,14 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
 
 
     /**
-     * Reads properties through the EclipseLink mapping, so the entity's access type is respected and lazy attributes are loaded
+     * A created entity had no previous values
      */
-    private static Function<String, Object> currentValueReader(DescriptorEvent event)
+    private static final Function<String, Object> CREATED = propertyName -> null;
+
+    /**
+     * Reads unchanged properties through the EclipseLink mapping, so the entity's access type is respected and lazy attributes are loaded
+     */
+    private static Function<String, Object> previousValueReader(DescriptorEvent event)
     {
         final Object entity = event.getObject();
         final ClassDescriptor descriptor = event.getDescriptor();
@@ -206,14 +211,14 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
     @Override
     public void prePersistEvent(DescriptorEvent event)
     {
-        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), false, entityFilter, fieldFilter), currentValueReader(event));
+        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), false, entityFilter, fieldFilter), CREATED);
         listener.preCreate(e);
     }
 
     @Override
     public void preRemoveEvent(DescriptorEvent event)
     {
-        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), true, entityFilter, fieldFilter), currentValueReader(event));
+        final EntityDataChange e = new EntityDataChangeImpl(getObjectId(event.getObject()), event.getObject(), entityUtil.extractEntityProperties(event.getObject(), true, entityFilter, fieldFilter), previousValueReader(event));
 
         listener.preDelete(e);
     }
@@ -226,7 +231,7 @@ public class EclipseLinkEntityEventListener implements EntityEventListener<Descr
         if (entityFilter == null || entityFilter.test(entity))
         {
             final Collection<PropertyChange<?>> properties = handleModification(event);
-            final EntityDataChange e = new EntityDataChangeImpl(key, entity, properties, currentValueReader(event));
+            final EntityDataChange e = new EntityDataChangeImpl(key, entity, properties, previousValueReader(event));
             listener.preUpdate(e);
         }
     }

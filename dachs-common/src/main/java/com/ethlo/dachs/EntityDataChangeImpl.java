@@ -14,7 +14,7 @@ public class EntityDataChangeImpl implements EntityDataChange
 	private Serializable id;
 	private final Object entity;
 	private final Map<String, PropertyChange<?>> properties;
-	private final Function<String, Object> currentValueReader;
+	private final Function<String, Object> previousValueReader;
 
 	public EntityDataChangeImpl(Serializable id, Object entity, Collection<PropertyChange<?>> properties)
 	{
@@ -22,11 +22,11 @@ public class EntityDataChangeImpl implements EntityDataChange
 	}
 
 	/**
-	 * @param currentValueReader Reads the current value of a property of the entity, or null to read the field
+	 * @param previousValueReader Reads the previous value of a property that has no {@link PropertyChange}, or null to read the field
 	 */
-	public EntityDataChangeImpl(Serializable id, Object entity, Collection<PropertyChange<?>> properties, Function<String, Object> currentValueReader)
+	public EntityDataChangeImpl(Serializable id, Object entity, Collection<PropertyChange<?>> properties, Function<String, Object> previousValueReader)
 	{
-		this.currentValueReader = currentValueReader;
+		this.previousValueReader = previousValueReader;
 		this.id = id;
 		this.entity = entity;
 		this.properties = new TreeMap<>();
@@ -55,9 +55,14 @@ public class EntityDataChangeImpl implements EntityDataChange
 	}
 	
 	@Override
-	public Object getCurrentValue(String propertyName)
+	public Object getPreviousValue(String propertyName)
 	{
-		return currentValueReader != null ? currentValueReader.apply(propertyName) : EntityDataChange.super.getCurrentValue(propertyName);
+		final Optional<PropertyChange<?>> change = getPropertyChange(propertyName);
+		if (change.isPresent())
+		{
+			return change.get().getOldValue();
+		}
+		return previousValueReader != null ? previousValueReader.apply(propertyName) : EntityDataChange.super.getPreviousValue(propertyName);
 	}
 
 	@Override

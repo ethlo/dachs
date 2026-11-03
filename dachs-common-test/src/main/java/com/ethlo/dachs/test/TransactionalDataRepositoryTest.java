@@ -350,4 +350,19 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
         final EntityDataChange updated = getById(listener.getPostDataChangeSet().getUpdated(), Gadget.class, id);
         assertThat(updated.getPreviousValue("name")).isEqualTo("widget");
     }
+
+    @Test
+    public void testPreviousValuesOfCreatedPropertyAccessAttributeAreNull()
+    {
+        final Long id = txTpl.execute(t ->
+        {
+            final Gadget gadget = new Gadget("widget");
+            em.persist(gadget);
+            em.flush();
+            return gadget.getId();
+        });
+
+        final EntityDataChange created = getById(listener.getPostDataChangeSet().getCreated(), Gadget.class, id);
+        assertThat(created.getPreviousValue("name")).isNull();
+    }
 }
