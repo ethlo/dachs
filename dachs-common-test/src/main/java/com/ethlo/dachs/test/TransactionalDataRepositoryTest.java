@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.SingularAttribute;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -200,5 +203,58 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
             return null;
         });
         assertThat(listener.getPostDataChangeSet().getCreated().size()).isEqualTo(iterations);
+    }
+
+    @Test
+    public void testUpdateToOneReferenceHasPreviousEntityAsOldValue()
+    {
+        final Integer[] ids = txTpl.execute(t ->
+        {
+            final Product first = new Product("first", 100, Currency.getInstance("USD"));
+            final Product second = new Product("second", 200, Currency.getInstance("USD"));
+            final OrderLine line = new OrderLine().setProduct(first).setAmount(100).setCount(1);
+            em.persist(second);
+            em.persist(line);
+            em.flush();
+            return new Integer[]{line.getId(), first.getId(), second.getId()};
+        });
+        listener.clear();
+
+        txTpl.execute(t ->
+        {
+            em.find(OrderLine.class, ids[0]).setProduct(em.find(Product.class, ids[2]));
+            return null;
+        });
+
+        final EntityDataChange updated = getById(listener.getPostDataChangeSet().getUpdated(), OrderLine.class, ids[0]);
+        final PropertyChange<?> product = updated.getPropertyChange("product").orElseThrow();
+        assertThat(product.getOldValue()).isInstanceOf(Product.class);
+        assertThat(((Product) product.getOldValue()).getId()).isEqualTo(ids[1]);
+        assertThat(((Product) product.getNewValue()).getId()).isEqualTo(ids[2]);
+    }
+
+    @Test
+    public void testPreviousValues()
+    {
+        txTpl.execute(t ->
+        {
+            customerRepository.findById(1L).orElseThrow().setFirstName("Hugo");
+            return null;
+        });
+
+        final EntityDataChange updated = getById(listener.getPostDataChangeSet().getUpdated(), Customer.class, 1L);
+        final EntityType<Customer> customer = em.getMetamodel().entity(Customer.class);
+        final SingularAttribute<? super Customer, String> firstName = customer.getSingularAttribute("firstName", String.class);
+        final SingularAttribute<? super Customer, String> lastName = customer.getSingularAttribute("lastName", String.class);
+
+        assertThat(updated.getPreviousValue("firstName")).isEqualTo("Hugh");
+        assertThat(updated.getPreviousValue(firstName)).isEqualTo("Hugh");
+        assertThat(updated.getPreviousValue("lastName")).isEqualTo("Jackman");
+        assertThat(updated.getPreviousValue(lastName)).isEqualTo("Jackman");
+
+        final PropertyChange<String> firstNameChange = updated.getPropertyChange(firstName).orElseThrow();
+        assertThat(firstNameChange.getOldValue()).isEqualTo("Hugh");
+        assertThat(firstNameChange.getNewValue()).isEqualTo("Hugo");
+        assertThat(updated.getPropertyChange(lastName)).isEmpty();
     }
 }
