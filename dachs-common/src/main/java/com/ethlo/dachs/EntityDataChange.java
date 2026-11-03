@@ -57,9 +57,8 @@ public interface EntityDataChange
 	 */
 	default Object getPreviousValue(String propertyName)
 	{
-		return getPropertyChange(propertyName)
-				.map(change -> (Object) change.getOldValue())
-				.orElseGet(() -> ReflectionUtil.getPropertyValue(getEntity(), propertyName));
+		final Optional<PropertyChange<?>> change = getPropertyChange(propertyName);
+		return change.isPresent() ? change.get().getOldValue() : ReflectionUtil.getPropertyValue(getEntity(), propertyName);
 	}
 
 	/**

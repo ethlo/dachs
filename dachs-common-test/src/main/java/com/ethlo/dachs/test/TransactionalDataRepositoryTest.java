@@ -257,4 +257,21 @@ public class TransactionalDataRepositoryTest extends AbstractDataRepositoryTest
         assertThat(firstNameChange.getNewValue()).isEqualTo("Hugo");
         assertThat(updated.getPropertyChange(lastName)).isEmpty();
     }
+
+    @Test
+    public void testPreviousValuesOnCreateAreNull()
+    {
+        final Long id = txTpl.execute(t ->
+        {
+            final Customer created = customerRepository.save(new Customer("Kim", "Bauer"));
+            em.flush();
+            return created.getId();
+        });
+
+        final EntityDataChange created = getById(listener.getPostDataChangeSet().getCreated(), Customer.class, id);
+        final SingularAttribute<? super Customer, String> firstName = em.getMetamodel().entity(Customer.class).getSingularAttribute("firstName", String.class);
+        assertThat(created.getPreviousValue("firstName")).isNull();
+        assertThat(created.getPreviousValue(firstName)).isNull();
+        assertThat(created.getPreviousValue("lastName")).isNull();
+    }
 }

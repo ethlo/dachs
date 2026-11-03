@@ -41,6 +41,14 @@ public class ModelTest
         assertThat(change.getPreviousValue("nickname")).isEqualTo("JD");
     }
 
+    @Test
+    public void testPreviousValueKeepsNullOldValue()
+    {
+        final Person person = new Person("Jane", "Doe", true);
+        final EntityDataChange change = new EntityDataChangeImpl(1, person, List.of(new PropertyChange<>("firstName", String.class, null, "Jane")));
+        assertThat(change.getPreviousValue("firstName")).isNull();
+    }
+
     @SuppressWarnings("unused")
     static class Person
     {
