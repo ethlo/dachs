@@ -1,6 +1,9 @@
 package com.ethlo.dachs;
 
+import java.lang.reflect.Proxy;
 import java.util.List;
+
+import jakarta.persistence.metamodel.Attribute;
 
 import org.junit.jupiter.api.Test;
 
@@ -58,6 +61,35 @@ public class ModelTest
         set.getUpdated().add(change);
         final EntityDataChange copy = MutableEntityDataChangeSet.clone(set).getUpdated().iterator().next();
         assertThat(copy.getPreviousValue("lastName")).isEqualTo("read:lastName");
+    }
+
+    @Test
+    public void testCopyResolvesTypedLookupsFromItsOwnChanges()
+    {
+        final Person person = new Person("Jane", "Doe");
+        final EntityDataChange change = new EntityDataChangeImpl(1, person, List.of(new PropertyChange<>("lastName", String.class, "Smith", "Doe")), null);
+        final MutableEntityDataChangeSet set = new MutableEntityDataChangeSet();
+        set.getUpdated().add(change);
+        final EntityDataChange copy = MutableEntityDataChangeSet.clone(set).getUpdated().iterator().next();
+
+        change.getPropertyChanges().clear();
+
+        final Attribute<Person, String> lastName = attribute("lastName");
+        assertThat(copy.getPropertyChange(lastName)).hasValueSatisfying(c -> assertThat(c.getOldValue()).isEqualTo("Smith"));
+        assertThat(copy.getPreviousValue(lastName)).isEqualTo("Smith");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Attribute<Person, T> attribute(String name)
+    {
+        return (Attribute<Person, T>) Proxy.newProxyInstance(ModelTest.class.getClassLoader(), new Class<?>[]{Attribute.class}, (proxy, method, args) ->
+        {
+            if (method.getName().equals("getName"))
+            {
+                return name;
+            }
+            throw new UnsupportedOperationException(method.getName());
+        });
     }
 
     @SuppressWarnings("unused")

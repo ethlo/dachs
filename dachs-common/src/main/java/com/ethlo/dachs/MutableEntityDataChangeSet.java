@@ -81,8 +81,9 @@ public class MutableEntityDataChangeSet implements EntityDataChangeSet
     }
 
     /**
-     * A copy with its own {@link PropertyChange} instances that reads previous values and typed lookups from the
-     * original, so restrictions of the original (such as those of identity-converted changes) are kept
+     * A copy with its own {@link PropertyChange} instances that reads previous values of properties it has no change for
+     * from the original. Typed lookups are passed to the original first, so its restrictions (such as those of
+     * identity-converted changes) are kept, but are answered from the copy's own changes.
      */
     private static class CopiedEntityDataChange extends EntityDataChangeImpl
     {
@@ -97,13 +98,15 @@ public class MutableEntityDataChangeSet implements EntityDataChangeSet
         @Override
         public <T> Optional<PropertyChange<T>> getPropertyChange(Attribute<?, T> attribute)
         {
-            return original.getPropertyChange(attribute).isPresent() ? super.getPropertyChange(attribute) : Optional.empty();
+            original.getPropertyChange(attribute);
+            return super.getPropertyChange(attribute);
         }
 
         @Override
         public <T> T getPreviousValue(Attribute<?, T> attribute)
         {
-            return original.getPreviousValue(attribute);
+            original.getPropertyChange(attribute);
+            return super.getPreviousValue(attribute);
         }
     }
 }
