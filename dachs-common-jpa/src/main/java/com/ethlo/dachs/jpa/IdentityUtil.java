@@ -6,11 +6,14 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PersistenceUnitUtil;
+import jakarta.persistence.metamodel.Attribute;
 
 import com.ethlo.dachs.EntityDataChange;
 import com.ethlo.dachs.EntityDataChangeImpl;
@@ -27,7 +30,8 @@ public class IdentityUtil
     
     /**
      * Converts all the entities in the graph to simply contain their primary key. This is useful for logging and auditing as it 
-     * avoids potential cycles in the graph.
+     * avoids potential cycles in the graph. The converted changes hold ids where the attribute type is an entity, so their
+     * typed {@link Attribute} lookups throw {@link UnsupportedOperationException}; use the {@code String} overloads instead.
      * 
      * @param list
      * @return
@@ -35,7 +39,7 @@ public class IdentityUtil
     public Collection<EntityDataChange> toIndentityReferences(Collection<EntityDataChange> list)
     {
         return list.stream().map((entityData)->
-                new EntityDataChangeImpl(entityData.getId(), entityData.getEntity(), entityData.getPropertyChanges().stream().map(this::transform).collect(Collectors.toList()), propertyName -> toIdentityReference(entityData.getPreviousValue(propertyName)))).collect(Collectors.toList());
+                new IdentityReferenceDataChange(entityData.getId(), entityData.getEntity(), entityData.getPropertyChanges().stream().map(this::transform).collect(Collectors.toList()), propertyName -> toIdentityReference(entityData.getPreviousValue(propertyName)))).collect(Collectors.toList());
     }    
 
     private Object toIdentityReference(Object value)
@@ -117,5 +121,27 @@ public class IdentityUtil
     private Serializable getId(Object entity)
     {
         return (Serializable) persistenceUnitUtil.getIdentifier(entity);
+    }
+
+    private static class IdentityReferenceDataChange extends EntityDataChangeImpl
+    {
+        private static final String MESSAGE = "Changes converted to identity references hold ids instead of entities, so they cannot be read as the attribute type. Use the String overload for property '%s'";
+
+        IdentityReferenceDataChange(Serializable id, Object entity, Collection<PropertyChange<?>> properties, Function<String, Object> previousValueReader)
+        {
+            super(id, entity, properties, previousValueReader);
+        }
+
+        @Override
+        public <T> Optional<PropertyChange<T>> getPropertyChange(Attribute<?, T> attribute)
+        {
+            throw new UnsupportedOperationException(String.format(MESSAGE, attribute.getName()));
+        }
+
+        @Override
+        public <T> T getPreviousValue(Attribute<?, T> attribute)
+        {
+            throw new UnsupportedOperationException(String.format(MESSAGE, attribute.getName()));
+        }
     }
 }

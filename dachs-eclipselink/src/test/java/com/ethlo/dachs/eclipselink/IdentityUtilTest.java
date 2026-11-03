@@ -1,11 +1,13 @@
 package com.ethlo.dachs.eclipselink;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Currency;
 import java.util.List;
 
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,5 +55,13 @@ public class IdentityUtilTest extends AbstractDataRepositoryTest
 
         assertThat(identity.getPreviousValue("count")).isEqualTo(1);
         assertThat(identity.getPreviousValue("product")).isEqualTo(ids[1]);
+
+        final SingularAttribute<? super OrderLine, Product> product = em.getMetamodel().entity(OrderLine.class).getSingularAttribute("product", Product.class);
+        assertThatThrownBy(() -> identity.getPreviousValue(product))
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("'product'");
+        assertThatThrownBy(() -> identity.getPropertyChange(product))
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("'product'");
     }
 }

@@ -39,8 +39,8 @@ public interface EntityDataChange
 
 	/**
 	 * Get the {@link PropertyChange} for the given attribute of this entity.
-	 * The values are cast to the attribute type: changes converted by {@code IdentityUtil} hold ids instead of
-	 * referenced entities, so use {@link #getPropertyChange(String)} for those
+	 * The values are cast to the attribute type. Changes converted by {@code IdentityUtil} hold ids instead of
+	 * referenced entities and throw {@link UnsupportedOperationException}; use {@link #getPropertyChange(String)} for those
 	 * @param attribute The metamodel attribute of the entity property
 	 * @param <T> The type of the property
 	 * @return The {@link PropertyChange} for the given attribute, or empty if the property did not change
@@ -66,8 +66,8 @@ public interface EntityDataChange
 
 	/**
 	 * Get the value the given attribute had before this change, see {@link #getPreviousValue(String)}.
-	 * The value is cast to the attribute type: changes converted by {@code IdentityUtil} hold ids instead of
-	 * referenced entities, so use {@link #getPreviousValue(String)} for those
+	 * The value is cast to the attribute type. Changes converted by {@code IdentityUtil} hold ids instead of
+	 * referenced entities and throw {@link UnsupportedOperationException}; use {@link #getPreviousValue(String)} for those
 	 * @param attribute The metamodel attribute of the entity property
 	 * @param <T> The type of the property
 	 * @return The previous value of the property
