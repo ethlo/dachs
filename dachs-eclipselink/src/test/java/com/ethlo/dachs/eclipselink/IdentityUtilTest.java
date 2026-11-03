@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.ethlo.dachs.CollectingEntityChangeSetListener;
 import com.ethlo.dachs.EntityDataChange;
+import com.ethlo.dachs.MutableEntityDataChangeSet;
 import com.ethlo.dachs.jpa.IdentityUtil;
 import com.ethlo.dachs.test.AbstractDataRepositoryTest;
 import com.ethlo.dachs.test.model.OrderLine;
@@ -56,12 +57,20 @@ public class IdentityUtilTest extends AbstractDataRepositoryTest
         assertThat(identity.getPreviousValue("count")).isEqualTo(1);
         assertThat(identity.getPreviousValue("product")).isEqualTo(ids[1]);
 
+        final MutableEntityDataChangeSet set = new MutableEntityDataChangeSet();
+        set.getUpdated().add(identity);
+        final EntityDataChange copy = MutableEntityDataChangeSet.clone(set).getUpdated().iterator().next();
+        assertThat(copy.getPreviousValue("product")).isEqualTo(ids[1]);
+
         final SingularAttribute<? super OrderLine, Product> product = em.getMetamodel().entity(OrderLine.class).getSingularAttribute("product", Product.class);
-        assertThatThrownBy(() -> identity.getPreviousValue(product))
-                .isInstanceOf(UnsupportedOperationException.class)
-                .hasMessageContaining("'product'");
-        assertThatThrownBy(() -> identity.getPropertyChange(product))
-                .isInstanceOf(UnsupportedOperationException.class)
-                .hasMessageContaining("'product'");
+        for (final EntityDataChange change : List.of(identity, copy))
+        {
+            assertThatThrownBy(() -> change.getPreviousValue(product))
+                    .isInstanceOf(UnsupportedOperationException.class)
+                    .hasMessageContaining("'product'");
+            assertThatThrownBy(() -> change.getPropertyChange(product))
+                    .isInstanceOf(UnsupportedOperationException.class)
+                    .hasMessageContaining("'product'");
+        }
     }
 }

@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import jakarta.persistence.metamodel.Attribute;
 
 @EntityListenerIgnore
 public class MutableEntityDataChangeSet implements EntityDataChangeSet
@@ -36,7 +39,7 @@ public class MutableEntityDataChangeSet implements EntityDataChangeSet
 
     private static EntityDataChange clone(EntityDataChange edc)
     {
-        return new EntityDataChangeImpl(edc.getId(), edc.getEntity(), clonePropChanges(edc.getPropertyChanges()), edc::getPreviousValue);
+        return new CopiedEntityDataChange(edc);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -75,5 +78,32 @@ public class MutableEntityDataChangeSet implements EntityDataChangeSet
     public boolean isEmpty()
     {
         return created.isEmpty() && updated.isEmpty() && deleted.isEmpty();
+    }
+
+    /**
+     * A copy with its own {@link PropertyChange} instances that reads previous values and typed lookups from the
+     * original, so restrictions of the original (such as those of identity-converted changes) are kept
+     */
+    private static class CopiedEntityDataChange extends EntityDataChangeImpl
+    {
+        private final EntityDataChange original;
+
+        CopiedEntityDataChange(EntityDataChange original)
+        {
+            super(original.getId(), original.getEntity(), clonePropChanges(original.getPropertyChanges()), original::getPreviousValue);
+            this.original = original;
+        }
+
+        @Override
+        public <T> Optional<PropertyChange<T>> getPropertyChange(Attribute<?, T> attribute)
+        {
+            return original.getPropertyChange(attribute).isPresent() ? super.getPropertyChange(attribute) : Optional.empty();
+        }
+
+        @Override
+        public <T> T getPreviousValue(Attribute<?, T> attribute)
+        {
+            return original.getPreviousValue(attribute);
+        }
     }
 }
