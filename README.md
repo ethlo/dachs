@@ -79,10 +79,15 @@ public interface EntityDataChange
   Object getEntity();
   List<PropertyChange<?>> getPropertyChanges();
   Optional<PropertyChange<?>> getPropertyChange(String propertyName);
+  <T> Optional<PropertyChange<T>> getPropertyChange(Attribute<?, T> attribute);
+  Object getPreviousValue(String propertyName);
+  <T> T getPreviousValue(Attribute<?, T> attribute);
 }
 ```
 
 Each `EntityDataChange` object holds a collection of [`PropertyChange`s](https://github.com/ethlo/dachs/blob/master/dachs-common/src/main/java/com/ethlo/dachs/PropertyChange.java) that is the individual properties that has changed.
+
+The `Attribute` overloads take a JPA metamodel attribute instead of a property name and return typed values. `getPreviousValue` returns the value a property had before the change: the old value if the property changed, otherwise its unchanged value. With EclipseLink, unchanged values are read through the attribute's mapping, so the entity's access type (field or property) is respected and lazy attributes are loaded; for created entities every previous value is `null`. A plain `EntityDataChangeImpl` reads the field. This lets you rebuild values that depend on several properties, such as a cache key, as they were before an update. For a changed to-one reference, the old value is the previously referenced entity. Changes converted by `IdentityUtil` hold ids instead of referenced entities, including their previous values, so their `Attribute` overloads throw `UnsupportedOperationException`; use the `String` overloads for those.
 
 ```java
 public interface PropertyChange<T>
