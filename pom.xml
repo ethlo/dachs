@@ -47,13 +47,6 @@
     </modules>
 
     <build>
-        <extensions>
-            <extension>
-                <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-ssh</artifactId>
-                <version>3.5.3</version>
-            </extension>
-        </extensions>
         <pluginManagement>
             <plugins>
                 <plugin>
