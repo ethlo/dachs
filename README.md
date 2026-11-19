@@ -20,7 +20,7 @@ All the different persistence frameworks have their different APIs for detecting
 <dependency>
   <groupId>com.ethlo.dachs</groupId>
   <artifactId>dachs-{impl}</artifactId>
-  <version>${dachs.version}</version>
+  <version>1.4.0</version>
 </dependency>
 ```
 
